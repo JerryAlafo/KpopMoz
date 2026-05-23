@@ -18,8 +18,6 @@ const navItems = [
 ];
 
 const DARK_HERO_ROUTES = [
-  "/eventos",
-  "/aprender",
   "/sobre",
   "/imprensa",
   "/trabalha-connosco",

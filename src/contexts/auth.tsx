@@ -10,6 +10,7 @@ export interface KMUser {
   bio: string;
   fandoms: string[];
   joinedAt: string;
+  isAdmin?: boolean;
 }
 
 const DEMO_USER: KMUser = {
@@ -20,6 +21,7 @@ const DEMO_USER: KMUser = {
   bio: "ARMY desde 2017 · Cover dancer · Membro KM desde 2021",
   fandoms: ["ARMY", "BLINK", "ONCE"],
   joinedAt: "2021-03-15",
+  isAdmin: true,
 };
 
 interface AuthCtx {
