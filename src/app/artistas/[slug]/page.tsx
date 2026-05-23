@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { artists } from "@/data/artists";
-import { ArrowLeft, ArrowUpRight, Users, Music } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Music, Users } from "lucide-react";
+import { getArtistBySlug, getDynamicArtists } from "@/lib/music-feed";
 import { Marquee } from "@/components/shared/Marquee";
+import type { Artist } from "@/types";
 
-export function generateStaticParams() {
-  return artists.map((a) => ({ slug: a.slug }));
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+function artistVisualStyle(artist: Artist) {
+  if (!artist.imageUrl) return { background: artist.bg };
+
+  return {
+    backgroundImage: `linear-gradient(180deg, rgba(10,10,10,0.08), rgba(10,10,10,0.6)), url("${artist.imageUrl.replace(/["\\\n\r]/g, "")}")`,
+    backgroundPosition: "center",
+    backgroundSize: "cover",
+  };
 }
 
 export async function generateMetadata({
@@ -15,11 +25,12 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const artist = artists.find((a) => a.slug === slug);
+  const artist = await getArtistBySlug(slug);
   if (!artist) return {};
+
   return {
     title: `${artist.name} — KPOP.MZ`,
-    description: artist.description ?? `Descobre ${artist.name} na KPOP.MZ — a comunidade K-POP de Moçambique.`,
+    description: `Faixas reais de ${artist.name} carregadas a partir de fonte musical externa.`,
   };
 }
 
@@ -29,17 +40,18 @@ export default async function ArtistPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const artist = artists.find((a) => a.slug === slug);
+  const artist = await getArtistBySlug(slug);
   if (!artist) notFound();
 
-  const related = artists.filter((a) => a.id !== artist.id).slice(0, 4);
+  const related = (await getDynamicArtists(12))
+    .filter((item) => item.id !== artist.id)
+    .slice(0, 4);
 
   return (
     <>
-      {/* Hero */}
       <section
-        className="relative pt-28 lg:pt-36 pb-0 overflow-hidden grain"
-        style={{ background: artist.bg }}
+        className="relative pt-28 lg:pt-36 pb-0 overflow-hidden grain bg-ink"
+        style={artistVisualStyle(artist)}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/20 to-bone" />
         <div
@@ -47,7 +59,7 @@ export default async function ArtistPage({
           className="absolute right-[-2rem] top-8 hangul-deco font-black text-bone/[0.12] select-none pointer-events-none leading-none"
           style={{ fontSize: "clamp(6rem, 18vw, 18rem)" }}
         >
-          {artist.koreanName?.slice(0, 2) ?? "케이"}
+          KPOP
         </div>
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 relative">
           <Link
@@ -63,14 +75,12 @@ export default async function ArtistPage({
               <span className="bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5">
                 {artist.type}
               </span>
-              {artist.fandomName && (
-                <span className="bg-coral text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5">
-                  {artist.fandomName}
-                </span>
-              )}
+              <span className="bg-coral text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5">
+                Fonte real
+              </span>
             </div>
-            <div className="hangul-deco text-bone/70 text-2xl sm:text-3xl mb-2">
-              {artist.koreanName}
+            <div className="font-mono text-base sm:text-lg text-bone/70 mb-3">
+              {artist.genre ?? "Catálogo musical"}
             </div>
             <h1
               className="font-display font-black tracking-[-0.03em] leading-[0.88] text-bone"
@@ -82,20 +92,14 @@ export default async function ArtistPage({
         </div>
       </section>
 
-      {/* Stats strip */}
       <section className="bg-ink text-bone border-b border-bone/10">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-bone/10">
             {[
-              { label: "Agência", value: artist.agency },
-              { label: "Debut", value: String(artist.debutYear) },
-              { label: "Fandom", value: artist.fandomName ?? "—" },
-              {
-                label: "Seguidores",
-                value: artist.followers >= 1000000
-                  ? `${(artist.followers / 1000000).toFixed(0)}M`
-                  : `${(artist.followers / 1000).toFixed(0)}K`,
-              },
+              { label: "Fonte", value: "iTunes" },
+              { label: "Género", value: artist.genre ?? "Música" },
+              { label: "Faixas", value: String(artist.topTracks.length) },
+              { label: "Perfil", value: artist.sourceUrl ? "Externo" : "Indisponível" },
             ].map(({ label, value }) => (
               <div key={label} className="py-6 lg:py-8 px-4 lg:px-6 first:pl-0">
                 <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-bone/50 mb-1">
@@ -110,57 +114,33 @@ export default async function ArtistPage({
         </div>
       </section>
 
-      {/* Main content */}
       <section className="py-12 lg:py-20">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
-            {/* Info */}
             <div className="lg:col-span-7 space-y-10">
-              {artist.description && (
-                <div>
-                  <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-4">
-                    <span className="inline-block w-6 h-px bg-coral" />
-                    <span>Sobre</span>
-                  </div>
-                  <p className="text-base sm:text-lg text-ink/75 leading-[1.85]">
-                    {artist.description}
-                  </p>
+              <div>
+                <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-4">
+                  <span className="inline-block w-6 h-px bg-coral" />
+                  <span>Sobre</span>
                 </div>
-              )}
+                <p className="text-base sm:text-lg text-ink/75 leading-[1.85]">
+                  Este perfil é montado em tempo real a partir de dados públicos de música.
+                  Por isso só mostramos campos que vêm da fonte externa, sem agência,
+                  seguidores ou datas inventadas.
+                </p>
+              </div>
 
-              {/* Members */}
-              {artist.members && artist.members.length > 0 && (
-                <div>
-                  <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-6">
-                    <span className="inline-block w-6 h-px bg-coral" />
-                    <span>Membros · {artist.members.length}</span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-                    {artist.members.map((member, i) => (
-                      <div
-                        key={member}
-                        className="border border-ink/10 p-4 lg:p-5 hover:border-coral transition-colors group"
-                      >
-                        <div className="font-display font-black text-2xl lg:text-3xl text-ink/15 group-hover:text-coral/30 transition-colors mb-2">
-                          {String(i + 1).padStart(2, "0")}
-                        </div>
-                        <div className="font-display font-bold text-base lg:text-lg leading-snug">
-                          {member}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Top tracks */}
               <div>
                 <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-6">
                   <span className="inline-block w-6 h-px bg-coral" />
-                  <span>Top Tracks</span>
+                  <span>Top tracks reais</span>
                 </div>
                 <div className="space-y-2">
-                  {artist.topTracks.map((track, i) => (
+                  {artist.topTracks.length === 0 ? (
+                    <div className="border border-ink/10 p-5 text-sm text-ink/60">
+                      A fonte externa não devolveu faixas para este artista agora.
+                    </div>
+                  ) : artist.topTracks.map((track, i) => (
                     <div
                       key={track}
                       className="flex items-center gap-4 lg:gap-6 p-4 lg:p-5 border border-ink/10 hover:border-coral transition-colors group"
@@ -178,37 +158,51 @@ export default async function ArtistPage({
               </div>
             </div>
 
-            {/* Sidebar */}
             <aside className="lg:col-span-4 lg:col-start-9 space-y-5">
               <div
-                className="aspect-square grain relative overflow-hidden"
-                style={{ background: artist.bg }}
+                className="aspect-square grain relative overflow-hidden bg-ink"
+                style={artistVisualStyle(artist)}
               >
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="hangul-deco text-bone/30 text-5xl sm:text-7xl font-black leading-none mb-4">
-                    {artist.koreanName?.slice(0, 1) ?? "K"}
-                  </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-ink/20">
                   <div className="font-display font-black text-bone text-3xl sm:text-4xl tracking-tight">
                     {artist.name}
                   </div>
-                  {artist.fandomName && (
-                    <div className="mt-3 font-mono text-[10px] tracking-[0.3em] uppercase text-bone/70">
-                      {artist.fandomName}
-                    </div>
-                  )}
+                  <div className="mt-3 font-mono text-[10px] tracking-[0.3em] uppercase text-bone/70">
+                    {artist.genre ?? "K-POP"}
+                  </div>
                 </div>
               </div>
+
+              {artist.sourceUrl && (
+                <a
+                  href={artist.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block bg-coral text-ink p-6 group hover:bg-ink hover:text-bone transition-colors"
+                >
+                  <div className="font-mono text-[10px] tracking-[0.25em] uppercase mb-2 opacity-70">
+                    Fonte externa
+                  </div>
+                  <div className="font-display font-bold text-xl">
+                    Abrir perfil musical
+                  </div>
+                  <div className="mt-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] font-semibold">
+                    Ver na fonte
+                    <ArrowUpRight size={14} />
+                  </div>
+                </a>
+              )}
 
               <div className="border border-ink/15 p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Users size={16} strokeWidth={1.75} className="text-coral" />
                   <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-ink/60">
-                    {artist.fandomName} em Moçambique
+                    {artist.name} em Moçambique
                   </div>
                 </div>
                 <p className="text-sm text-ink/70 leading-relaxed">
-                  Encontra outros fãs de {artist.name} na comunidade KM. Grupos
-                  de discussão, listening parties e encontros regulares.
+                  Encontra outros fãs na comunidade KM. Grupos de discussão,
+                  listening parties e encontros regulares.
                 </p>
                 <Link
                   href="/comunidade"
@@ -217,29 +211,16 @@ export default async function ArtistPage({
                   Entrar na KM <ArrowUpRight size={13} />
                 </Link>
               </div>
-
-              <Link
-                href="/aprender"
-                className="block border border-ink/15 p-6 hover:border-coral transition-colors group"
-              >
-                <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-ink/50 mb-1.5">
-                  Aprende mais
-                </div>
-                <div className="font-display font-bold text-base group-hover:text-coral transition-colors inline-flex items-center gap-2">
-                  Cultura K-POP <ArrowUpRight size={14} />
-                </div>
-              </Link>
             </aside>
           </div>
         </div>
       </section>
 
       <Marquee
-        items={artist.topTracks.concat([artist.name, artist.fandomName ?? "K-POP"])}
+        items={artist.topTracks.length > 0 ? artist.topTracks.concat([artist.name]) : [artist.name, artist.genre ?? "K-POP"]}
         invert
       />
 
-      {/* Related artists */}
       <section className="py-12 lg:py-20">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
@@ -253,38 +234,37 @@ export default async function ArtistPage({
               Ver todos <ArrowUpRight size={13} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-            {related.map((a, i) => (
-              <Link
-                key={a.id}
-                href={`/artistas/${a.slug}`}
-                className="group flex flex-col card-tilt"
-              >
-                <div
-                  className="relative aspect-square overflow-hidden grain"
-                  style={{ background: a.bg }}
+          {related.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+              {related.map((item, i) => (
+                <Link
+                  key={item.id}
+                  href={`/artistas/${item.slug}`}
+                  className="group flex flex-col card-tilt"
                 >
-                  <div className="absolute top-3 left-3 bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1">
-                    {String(i + 1).padStart(2, "0")}
+                  <div
+                    className="relative aspect-square overflow-hidden grain bg-ink"
+                    style={artistVisualStyle(item)}
+                  >
+                    <div className="absolute top-3 left-3 bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1">
+                      {String(i + 1).padStart(2, "0")}
+                    </div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="font-display font-black text-2xl text-bone leading-none tracking-tight">
+                        {item.name}
+                      </h3>
+                    </div>
                   </div>
-                  <div className="absolute top-3 right-3 hangul-deco text-bone/60 text-2xl">
-                    {a.koreanName?.slice(0, 1) ?? "K"}
+                  <div className="bg-ink text-bone p-3">
+                    <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.2em] uppercase">
+                      <span>{item.genre ?? "Música"}</span>
+                      <span>Real</span>
+                    </div>
                   </div>
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="font-display font-black text-2xl text-bone leading-none tracking-tight">
-                      {a.name}
-                    </h3>
-                  </div>
-                </div>
-                <div className="bg-ink text-bone p-3">
-                  <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.2em] uppercase">
-                    <span>{a.fandomName}</span>
-                    <span>est. {a.debutYear}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

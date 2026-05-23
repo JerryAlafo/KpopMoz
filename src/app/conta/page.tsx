@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { events } from "@/data/events";
-import { news } from "@/data/news";
+import { isExternalNews, newsHref, newsVisualStyle } from "@/lib/news-ui";
 import { ArrowUpRight, Calendar, Newspaper, Bell, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { formatDate } from "@/lib/utils";
+import type { NewsItem } from "@/types";
 
 const monthMap: Record<string, string> = {
   "01": "JAN", "02": "FEV", "03": "MAR", "04": "ABR", "05": "MAI", "06": "JUN",
@@ -14,14 +16,35 @@ const monthMap: Record<string, string> = {
 
 export default function ContaDashboard() {
   const { user } = useAuth();
+  const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    setNewsLoading(true);
+    fetch("/api/news?limit=4", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (mounted && Array.isArray(data?.items)) setLatestNews(data.items);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setNewsLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   if (!user) return null;
 
   const upcomingEvents = events.slice(0, 3);
-  const latestNews = news.slice(0, 4);
 
   const stats = [
     { label: "Eventos inscritos", value: "3", icon: Calendar, href: "/conta/eventos" },
-    { label: "Artigos guardados", value: "7", icon: Newspaper, href: "/conta/favoritos" },
+    { label: "Notícias reais", value: newsLoading ? "..." : String(latestNews.length), icon: Newspaper, href: "/conta/favoritos" },
     { label: "Fandoms seguidos", value: String(user.fandoms.length), icon: Zap, href: "/conta/perfil" },
     { label: "Notificações", value: "2", icon: Bell, href: "#" },
   ];
@@ -110,19 +133,38 @@ export default function ContaDashboard() {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-          {latestNews.map((item) => (
+          {newsLoading ? (
+            [0, 1, 2, 3].map((item) => (
+              <div key={item} className="flex gap-3 p-4 border border-ink/10 animate-pulse">
+                <div className="shrink-0 w-14 h-14 bg-ink/10" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-2 w-20 bg-ink/10" />
+                  <div className="h-4 w-4/5 bg-ink/10" />
+                  <div className="h-2 w-24 bg-ink/10" />
+                </div>
+              </div>
+            ))
+          ) : latestNews.length === 0 ? (
+            <div className="sm:col-span-2 border border-ink/10 p-5">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                Não foi possível carregar notícias reais agora.
+              </div>
+            </div>
+          ) : latestNews.map((item) => (
             <Link
               key={item.id}
-              href={`/noticias/${item.slug}`}
+              href={newsHref(item)}
+              target={isExternalNews(item) ? "_blank" : undefined}
+              rel={isExternalNews(item) ? "noreferrer" : undefined}
               className="group flex gap-3 p-4 border border-ink/10 hover:border-ink transition-colors"
             >
               <div
-                className="shrink-0 w-14 h-14 grain"
-                style={{ background: item.imageBg }}
+                className="shrink-0 w-14 h-14 grain bg-ink"
+                style={newsVisualStyle(item)}
               />
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-[9px] tracking-[0.2em] uppercase text-coral mb-1">
-                  {item.category}
+                  {item.sourceName ?? item.category}
                 </div>
                 <h3 className="font-display font-semibold text-sm leading-tight group-hover:text-coral transition-colors line-clamp-2">
                   {item.title}

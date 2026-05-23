@@ -1,12 +1,16 @@
 import Link from "next/link";
-import { news } from "@/data/news";
+import { getDynamicNews } from "@/lib/news-feed";
+import { isExternalNews, newsHref, newsVisualStyle } from "@/lib/news-ui";
 import { SectionHeader } from "@/components/shared/SectionHeader";
-import { Clock } from "lucide-react";
+import { ArrowUpRight, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-export function FeaturedNews() {
-  const featured = news.find((n) => n.featured) ?? news[0];
-  const secondary = news.filter((n) => n.id !== featured.id).slice(0, 4);
+export async function FeaturedNews() {
+  const items = await getDynamicNews(6);
+  const featured = items.find((n) => n.featured) ?? items[0];
+  if (!featured) return null;
+
+  const secondary = items.filter((n) => n.id !== featured.id).slice(0, 4);
 
   return (
     <section className="py-16 lg:py-24 bg-bone">
@@ -22,13 +26,16 @@ export function FeaturedNews() {
         <div className="mt-10 lg:mt-16 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Featured */}
           <Link
-            href={`/noticias/${featured.slug}`}
+            href={newsHref(featured)}
+            target={isExternalNews(featured) ? "_blank" : undefined}
+            rel={isExternalNews(featured) ? "noreferrer" : undefined}
             className="lg:col-span-7 group block"
           >
             <div
-              className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[5/4] overflow-hidden grain"
-              style={{ background: featured.imageBg }}
+              className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[5/4] overflow-hidden grain bg-ink"
+              style={newsVisualStyle(featured)}
             >
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent" />
               <div className="absolute inset-0 mix-blend-overlay opacity-50"
                 style={{
                   backgroundImage:
@@ -55,13 +62,21 @@ export function FeaturedNews() {
                 {featured.excerpt}
               </p>
               <div className="flex items-center gap-4 mt-4 font-mono text-[10px] sm:text-xs tracking-[0.2em] uppercase text-ink/60">
-                <span>{featured.author}</span>
+                <span>{featured.sourceName ?? featured.author}</span>
                 <span>·</span>
                 <span>{formatDate(featured.publishedAt)}</span>
                 <span>·</span>
                 <span className="inline-flex items-center gap-1.5">
                   <Clock size={11} /> {featured.readingTime} min
                 </span>
+                {isExternalNews(featured) && (
+                  <>
+                    <span>·</span>
+                    <span className="inline-flex items-center gap-1.5 text-coral">
+                      Fonte <ArrowUpRight size={11} />
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </Link>
@@ -71,20 +86,23 @@ export function FeaturedNews() {
             {secondary.map((item, i) => (
               <Link
                 key={item.id}
-                href={`/noticias/${item.slug}`}
+                href={newsHref(item)}
+                target={isExternalNews(item) ? "_blank" : undefined}
+                rel={isExternalNews(item) ? "noreferrer" : undefined}
                 className="group flex gap-4 py-5 border-b border-ink/10 first:pt-0 first:lg:pt-0 last:border-b-0"
               >
                 <div
-                  className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 relative grain"
-                  style={{ background: item.imageBg }}
+                  className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 relative grain bg-ink overflow-hidden"
+                  style={newsVisualStyle(item)}
                 >
+                  <div className="absolute inset-0 bg-ink/20" />
                   <div className="absolute inset-0 flex items-center justify-center font-display font-black text-bone/80 text-2xl">
                     {String(i + 2).padStart(2, "0")}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-mono text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-ink/50">
-                    {item.category} · {formatDate(item.publishedAt)}
+                    {(item.sourceName ?? item.category)} · {formatDate(item.publishedAt)}
                   </div>
                   <h4 className="font-display font-semibold text-base sm:text-lg leading-snug mt-1.5 group-hover:text-coral transition-colors line-clamp-3">
                     {item.title}

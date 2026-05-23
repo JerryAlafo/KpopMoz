@@ -12,6 +12,9 @@ export interface NewsItem {
   readingTime: number;
   featured?: boolean;
   imageBg: string;
+  imageUrl?: string;
+  sourceName?: string;
+  sourceUrl?: string;
   tags: string[];
 }
 
@@ -41,14 +44,17 @@ export interface Artist {
   slug: string;
   name: string;
   koreanName?: string;
-  type: "grupo" | "solo";
-  agency: string;
-  debutYear: number;
+  type: "grupo" | "solo" | "artista";
+  agency?: string;
+  debutYear?: number;
   fandomName?: string;
   members?: string[];
   topTracks: string[];
-  followers: number;
+  followers?: number;
   bg: string;
+  imageUrl?: string;
+  sourceUrl?: string;
+  genre?: string;
   description?: string;
 }
 
@@ -60,11 +66,28 @@ export interface Talent {
   city: string;
   specialty: "Dança" | "Canto" | "Edição" | "Fanart" | "Moda" | "Cosplay";
   bio: string;
-  followers: number;
-  works: number;
+  followers?: number;
+  works?: number;
   featured?: boolean;
   bg: string;
+  imageUrl?: string;
+  sourceUrl?: string;
   socials?: { platform: string; handle: string }[];
+}
+
+export interface MusicItem {
+  id: string;
+  slug: string;
+  title: string;
+  artistName: string;
+  artistSlug?: string;
+  albumName?: string;
+  genre?: string;
+  releaseDate?: string;
+  imageUrl?: string;
+  previewUrl?: string;
+  sourceUrl?: string;
+  bg: string;
 }
 
 export interface MarketItem {

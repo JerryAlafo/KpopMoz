@@ -40,27 +40,6 @@ export const feedPosts: FeedPost[] = [
     tags: ["RandomDance", "Junho", "Maputo"],
   },
   {
-    id: "f2",
-    type: "news",
-    author: {
-      name: "Equipa KM",
-      username: "@kpopmz",
-      initials: "KM",
-      avatarBg: "#ff3d68",
-    },
-    publishedAt: "2026-05-22T18:00:00",
-    content: "BLACKPINK anuncia tour mundial e fãs moçambicanos pedem paragem em África.",
-    image: { bg: "linear-gradient(135deg, #ff3d68 0%, #ffd23f 100%)", alt: "BLACKPINK tour" },
-    link: { href: "/noticias/blackpink-anuncia-tour-mundial-2026", label: "Ler artigo completo" },
-    reactions: [
-      { emoji: "😭", count: 112 },
-      { emoji: "🙏", count: 87 },
-      { emoji: "💗", count: 64 },
-    ],
-    comments: 42,
-    tags: ["BLACKPINK", "Tour", "BLINK"],
-  },
-  {
     id: "f3",
     type: "post",
     author: {
@@ -165,25 +144,5 @@ export const feedPosts: FeedPost[] = [
     ],
     comments: 18,
     tags: ["VideoEdit", "RandomDance", "Recap"],
-  },
-  {
-    id: "f8",
-    type: "news",
-    author: {
-      name: "Equipa KM",
-      username: "@kpopmz",
-      initials: "KM",
-      avatarBg: "#ff3d68",
-    },
-    publishedAt: "2026-05-15T10:00:00",
-    content: "Stray Kids preparam novo álbum 'ATE' com produção totalmente de Bang Chan.",
-    image: { bg: "linear-gradient(135deg, #0a0a0a 0%, #2a2a2a 100%)", alt: "Stray Kids ATE" },
-    link: { href: "/noticias/stray-kids-novo-album-ato-final", label: "Ler artigo completo" },
-    reactions: [
-      { emoji: "🖤", count: 89 },
-      { emoji: "🔥", count: 76 },
-    ],
-    comments: 25,
-    tags: ["StrayKids", "STAY", "Lançamento"],
   },
 ];

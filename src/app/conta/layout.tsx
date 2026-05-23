@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, User, Calendar, Heart, Rss, ShieldCheck, LogOut, ChevronRight } from "lucide-react";
+import { LayoutDashboard, User, Calendar, Heart, Rss, ShieldCheck, LogOut, ChevronRight, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { cn } from "@/lib/utils";
 
@@ -147,6 +147,22 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
             </Link>
           );
         })}
+        {user.isAdmin && (
+          <Link
+            href="/conta/admin"
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-colors",
+              pathname === "/conta/admin" ? "text-coral" : "text-ink/40 hover:text-ink"
+            )}
+          >
+            <Shield
+              size={20}
+              strokeWidth={pathname === "/conta/admin" ? 2.25 : 1.75}
+              className={pathname === "/conta/admin" ? "text-coral" : ""}
+            />
+            <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Admin</span>
+          </Link>
+        )}
       </nav>
 
     </div>
