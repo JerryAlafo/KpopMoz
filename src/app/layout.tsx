@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AuthProvider } from "@/contexts/auth";
 
 export const metadata: Metadata = {
   title: "KPOP.MZ — Comunidade K-POP de Moçambique",
@@ -42,9 +43,11 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bone text-ink antialiased font-body">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { Menu, X, Search } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, X, Search, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth";
 
 const navItems = [
   { label: "Notícias", href: "/noticias", k: "01" },
@@ -16,8 +17,6 @@ const navItems = [
   { label: "Aprender", href: "/aprender", k: "07" },
 ];
 
-// Routes whose first hero section has a dark (bg-ink) background.
-// Header text will be bone/white while the page is at the top.
 const DARK_HERO_ROUTES = [
   "/eventos",
   "/aprender",
@@ -32,7 +31,10 @@ const DARK_HERO_ROUTES = [
 export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   const hasDarkHero = DARK_HERO_ROUTES.some(
     (r) => pathname === r || pathname.startsWith(r + "/")
@@ -49,6 +51,23 @@ export function Header() {
     document.body.style.overflow = open ? "hidden" : "";
   }, [open]);
 
+  useEffect(() => {
+    setAccountOpen(false);
+  }, [pathname]);
+
+  function handleLogout() {
+    logout();
+    setAccountOpen(false);
+    setOpen(false);
+    router.push("/");
+  }
+
+  const initials = user
+    ? user.name.split(" ").map((n) => n[0]).slice(0, 2).join("")
+    : "";
+
+  if (pathname === "/entrar") return null;
+
   return (
     <>
       <header
@@ -62,6 +81,7 @@ export function Header() {
             "flex items-center justify-between h-16 lg:h-20 transition-colors duration-300",
             light ? "text-ink" : "text-bone"
           )}>
+            {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
               <div className={cn(
                 "relative w-9 h-9 lg:w-10 lg:h-10 flex items-center justify-center transition-colors duration-300",
@@ -86,6 +106,7 @@ export function Header() {
               </div>
             </Link>
 
+            {/* Desktop nav */}
             <nav className="hidden lg:flex items-center gap-8">
               {navItems.map((item) => (
                 <Link
@@ -98,6 +119,7 @@ export function Header() {
               ))}
             </nav>
 
+            {/* Actions */}
             <div className="flex items-center gap-3">
               <Link
                 href="/pesquisa"
@@ -111,12 +133,56 @@ export function Header() {
               >
                 <Search size={16} strokeWidth={2} />
               </Link>
-              <Link
-                href="/comunidade"
-                className="hidden lg:inline-flex btn-brutal"
-              >
-                Entrar na KM
-              </Link>
+
+              {user ? (
+                <div className="hidden lg:block relative">
+                  <button
+                    onClick={() => setAccountOpen((v) => !v)}
+                    className={cn(
+                      "flex items-center gap-2.5 border px-3 py-2 transition-colors font-mono text-xs uppercase tracking-[0.15em]",
+                      light
+                        ? "border-ink hover:bg-ink hover:text-bone"
+                        : "border-bone/60 hover:bg-bone hover:text-ink"
+                    )}
+                  >
+                    <span className="w-6 h-6 bg-coral text-ink flex items-center justify-center font-bold text-[11px]">
+                      {initials}
+                    </span>
+                    {user.name.split(" ")[0]}
+                  </button>
+                  {accountOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-bone border border-ink shadow-lg z-50">
+                      <Link
+                        href="/conta"
+                        className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10"
+                      >
+                        <User size={13} /> A minha conta
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-coral transition-colors text-left"
+                      >
+                        <LogOut size={13} /> Sair
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="hidden lg:flex items-center gap-2">
+                  <Link
+                    href="/entrar"
+                    className={cn(
+                      "font-mono text-xs uppercase tracking-[0.15em] hover:text-coral transition-colors",
+                    )}
+                  >
+                    Entrar
+                  </Link>
+                  <Link href="/comunidade" className="btn-brutal">
+                    Criar conta
+                  </Link>
+                </div>
+              )}
+
               <button
                 onClick={() => setOpen(true)}
                 aria-label="Abrir menu"
@@ -153,7 +219,19 @@ export function Header() {
           )}
         >
           <div className="flex items-center justify-between px-5 h-16 border-b border-ink/10">
-            <span className="font-mono text-xs tracking-[0.25em] uppercase">Menu</span>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-coral text-ink flex items-center justify-center font-bold text-sm">
+                  {initials}
+                </span>
+                <div>
+                  <div className="font-display font-semibold text-sm">{user.name}</div>
+                  <div className="font-mono text-[10px] text-ink/50">{user.username}</div>
+                </div>
+              </div>
+            ) : (
+              <span className="font-mono text-xs tracking-[0.25em] uppercase">Menu</span>
+            )}
             <button
               onClick={() => setOpen(false)}
               aria-label="Fechar menu"
@@ -162,6 +240,7 @@ export function Header() {
               <X size={18} />
             </button>
           </div>
+
           <nav className="px-5 py-6">
             {navItems.map((item, i) => (
               <Link
@@ -180,15 +259,43 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <div className="px-5 pb-8 mt-4">
-            <Link
-              href="/comunidade"
-              onClick={() => setOpen(false)}
-              className="btn-brutal w-full justify-center"
-            >
-              Entrar na KM
-            </Link>
-            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/50 mt-6">
+
+          <div className="px-5 pb-8 mt-4 space-y-3">
+            {user ? (
+              <>
+                <Link
+                  href="/conta"
+                  onClick={() => setOpen(false)}
+                  className="btn-brutal w-full justify-center"
+                >
+                  <User size={14} /> A minha conta
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 border border-ink font-mono text-xs uppercase tracking-[0.15em] font-semibold hover:bg-ink hover:text-bone transition-colors"
+                >
+                  <LogOut size={14} /> Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/comunidade"
+                  onClick={() => setOpen(false)}
+                  className="btn-brutal w-full justify-center"
+                >
+                  Criar conta
+                </Link>
+                <Link
+                  href="/entrar"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 px-6 py-3.5 border border-ink font-mono text-xs uppercase tracking-[0.15em] font-semibold hover:bg-ink hover:text-bone transition-colors"
+                >
+                  Já tenho conta · Entrar
+                </Link>
+              </>
+            )}
+            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/50 mt-4">
               Comunidade desde 2020
               <br />
               Maputo · Beira · Online

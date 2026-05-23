@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, Users, MessageSquare, Heart, Calendar, Sparkles, Trophy } from "lucide-react";
 
 const fandoms = [
@@ -127,7 +128,7 @@ export default function ComunidadePage() {
                 <ArrowRight size={14} />
               </button>
               <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-bone/40 mt-4 text-center">
-                Já tens conta? <a href="#" className="text-coral">Entrar</a>
+                Já tens conta? <Link href="/entrar" className="text-coral hover:underline">Entrar</Link>
               </p>
             </div>
           </div>
