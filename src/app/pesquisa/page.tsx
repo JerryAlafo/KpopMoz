@@ -3,11 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Search, X } from "lucide-react";
-import { events } from "@/data/events";
-import { learnTopics } from "@/data/learn";
 import { formatDate } from "@/lib/utils";
 import { newsHref } from "@/lib/news-ui";
-import type { Artist, MusicItem, NewsItem, Talent } from "@/types";
+import type { Artist, EventItem, LearnTopic, MusicItem, NewsItem, Talent } from "@/types";
 
 type ResultType = "news" | "events" | "artists" | "music" | "talents" | "learn";
 
@@ -47,6 +45,8 @@ function useSearch(
   artists: Artist[],
   music: MusicItem[],
   talents: Talent[],
+  liveEvents: EventItem[],
+  learnItems: LearnTopic[],
 ): SearchResult[] {
   return useMemo(() => {
     if (query.trim().length < 2) return [];
@@ -73,7 +73,7 @@ function useSearch(
       }
     });
 
-    events.forEach((event) => {
+    liveEvents.forEach((event: EventItem) => {
       if (
         includesQuery(event.title, q) ||
         includesQuery(event.description, q) ||
@@ -151,7 +151,7 @@ function useSearch(
       }
     });
 
-    learnTopics.forEach((topic) => {
+    learnItems.forEach((topic: LearnTopic) => {
       if (
         includesQuery(topic.title, q) ||
         includesQuery(topic.excerpt, q) ||
@@ -179,15 +179,27 @@ export default function PesquisaPage() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [music, setMusic] = useState<MusicItem[]>([]);
   const [talents, setTalents] = useState<Talent[]>([]);
+  const [liveEvents, setLiveEvents] = useState<EventItem[]>([]);
+  const [learnItems, setLearnItems] = useState<LearnTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreDynamic, setHasMoreDynamic] = useState(true);
-  const results = useSearch(query, liveNews, artists, music, talents);
+  const results = useSearch(query, liveNews, artists, music, talents, liveEvents, learnItems);
 
   useEffect(() => {
     let mounted = true;
 
     setLoading(true);
+    fetch("/api/events", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (mounted && Array.isArray(data)) setLiveEvents(data); })
+      .catch(() => {});
+
+    fetch("/api/learn", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (mounted && Array.isArray(data)) setLearnItems(data); })
+      .catch(() => {});
+
     Promise.all([
       fetch(`/api/news?limit=${SEARCH_PAGE_SIZE}&offset=0`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null),
       fetch(`/api/artists?limit=${SEARCH_PAGE_SIZE}&offset=0`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null),

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { events } from "@/data/events";
+import { supabase } from "@/lib/supabase";
 import { MapPin, Clock, Users, ArrowLeft, ArrowUpRight, Calendar, CheckCircle } from "lucide-react";
 import { Marquee } from "@/components/shared/Marquee";
 
-export function generateStaticParams() {
-  return events.map((e) => ({ slug: e.slug }));
+export async function generateStaticParams() {
+  const { data } = await supabase.from("events").select("slug");
+  return (data ?? []).map((row) => ({ slug: row.slug as string }));
 }
 
 export async function generateMetadata({
@@ -15,11 +16,15 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = events.find((e) => e.slug === slug);
-  if (!event) return {};
+  const { data } = await supabase
+    .from("events")
+    .select("title, description")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!data) return {};
   return {
-    title: `${event.title} — KPOP.MZ`,
-    description: event.description,
+    title: `${data.title} — KPOP.MZ`,
+    description: data.description,
   };
 }
 
@@ -29,34 +34,71 @@ const monthMapFull: Record<string, string> = {
   "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro",
 };
 
+const typeLabel: Record<string, string> = {
+  "random-dance": "Random Dance",
+  "cover-dance": "Cover Dance",
+  "encontro": "Encontro",
+  "festival": "Festival",
+  "workshop": "Workshop",
+  "concurso": "Concurso",
+};
+
 export default async function EventoPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = events.find((e) => e.slug === slug);
-  if (!event) notFound();
+
+  const { data: row } = await supabase
+    .from("events")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!row) notFound();
+
+  const event = {
+    id: row.id as string,
+    slug: row.slug as string,
+    title: row.title as string,
+    type: row.type as string,
+    date: row.date as string,
+    startTime: row.start_time as string,
+    endTime: (row.end_time ?? undefined) as string | undefined,
+    location: row.location as string,
+    city: row.city as string,
+    description: row.description as string,
+    capacity: (row.capacity ?? undefined) as number | undefined,
+    registered: row.registered as number,
+    free: row.is_free as boolean,
+    price: row.price as number,
+    organizer: row.organizer as string,
+    coverBg: row.cover_bg as string,
+  };
 
   const [year, month, day] = event.date.split("-");
   const progress = event.capacity
     ? Math.min(100, Math.round((event.registered / event.capacity) * 100))
     : null;
 
-  const related = events
-    .filter((e) => e.id !== event.id && e.city === event.city)
-    .slice(0, 3)
-    .concat(events.filter((e) => e.id !== event.id && e.city !== event.city).slice(0, 3 - Math.min(3, events.filter((e) => e.id !== event.id && e.city === event.city).length)))
-    .slice(0, 3);
+  const { data: relatedRows } = await supabase
+    .from("events")
+    .select("id, slug, title, date, start_time, location, city, cover_bg")
+    .neq("id", event.id)
+    .order("date", { ascending: true })
+    .limit(3);
 
-  const typeLabel: Record<string, string> = {
-    "random-dance": "Random Dance",
-    "cover-dance": "Cover Dance",
-    "encontro": "Encontro",
-    "festival": "Festival",
-    "workshop": "Workshop",
-    "concurso": "Concurso",
-  };
+  const related = (relatedRows ?? []).map((r) => ({
+    id: r.id as string,
+    slug: r.slug as string,
+    title: r.title as string,
+    date: r.date as string,
+    startTime: r.start_time as string,
+    location: r.location as string,
+    city: r.city as string,
+    coverBg: r.cover_bg as string,
+  }));
 
   return (
     <>
@@ -93,7 +135,7 @@ export default async function EventoPage({
             <div className="flex flex-wrap items-center gap-4 mt-6 font-mono text-[10px] sm:text-xs tracking-[0.2em] uppercase text-bone/70">
               <span className="inline-flex items-center gap-1.5">
                 <Calendar size={11} />
-                {day} de {monthMapFull[month]} de {year}
+                {day} de {monthMapFull[month as string]} de {year}
               </span>
               <span className="opacity-40">·</span>
               <span className="inline-flex items-center gap-1.5">
@@ -128,7 +170,7 @@ export default async function EventoPage({
               {/* Info grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { label: "Data", value: `${day} de ${monthMapFull[month]} de ${year}` },
+                  { label: "Data", value: `${day} de ${monthMapFull[month as string]} de ${year}` },
                   { label: "Horário", value: `${event.startTime}${event.endTime ? ` — ${event.endTime}` : ""}` },
                   { label: "Local", value: event.location },
                   { label: "Cidade", value: event.city },

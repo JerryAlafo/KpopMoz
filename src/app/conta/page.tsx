@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { events } from "@/data/events";
 import { isExternalNews, newsHref, newsVisualStyle } from "@/lib/news-ui";
 import { ArrowUpRight, Calendar, Newspaper, Bell, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { formatDate } from "@/lib/utils";
-import type { NewsItem } from "@/types";
+import type { EventItem, NewsItem } from "@/types";
 
 const monthMap: Record<string, string> = {
   "01": "JAN", "02": "FEV", "03": "MAR", "04": "ABR", "05": "MAI", "06": "JUN",
@@ -18,6 +17,7 @@ export default function ContaDashboard() {
   const { user } = useAuth();
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -33,14 +33,17 @@ export default function ContaDashboard() {
         if (mounted) setNewsLoading(false);
       });
 
+    fetch("/api/events", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (mounted && Array.isArray(data)) setUpcomingEvents(data.slice(0, 3)); })
+      .catch(() => {});
+
     return () => {
       mounted = false;
     };
   }, []);
 
   if (!user) return null;
-
-  const upcomingEvents = events.slice(0, 3);
 
   const stats = [
     { label: "Eventos inscritos", value: "3", icon: Calendar, href: "/conta/eventos" },
@@ -90,7 +93,7 @@ export default function ContaDashboard() {
           </Link>
         </div>
         <div className="space-y-3">
-          {upcomingEvents.map((event) => {
+          {upcomingEvents.map((event: EventItem) => {
             const [, month, day] = event.date.split("-");
             return (
               <Link

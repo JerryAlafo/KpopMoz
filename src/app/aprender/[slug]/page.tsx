@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { learnTopics } from "@/data/learn";
+import { supabase } from "@/lib/supabase";
 import { Clock, ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
 import { Marquee } from "@/components/shared/Marquee";
 
-export function generateStaticParams() {
-  return learnTopics.map((t) => ({ slug: t.slug }));
+export async function generateStaticParams() {
+  const { data } = await supabase.from("learn_topics").select("slug");
+  return (data ?? []).map((row) => ({ slug: row.slug as string }));
 }
 
 export async function generateMetadata({
@@ -15,11 +16,15 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const topic = learnTopics.find((t) => t.slug === slug);
-  if (!topic) return {};
+  const { data } = await supabase
+    .from("learn_topics")
+    .select("title, excerpt")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!data) return {};
   return {
-    title: `${topic.title} — KPOP.MZ`,
-    description: topic.excerpt,
+    title: `${data.title} — KPOP.MZ`,
+    description: data.excerpt,
   };
 }
 
@@ -29,13 +34,45 @@ export default async function LearnArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const topic = learnTopics.find((t) => t.slug === slug);
-  if (!topic) notFound();
 
-  const related = learnTopics
-    .filter((t) => t.id !== topic.id)
-    .sort((a, b) => (a.category === topic.category ? -1 : 1))
-    .slice(0, 4);
+  const { data: row } = await supabase
+    .from("learn_topics")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!row) notFound();
+
+  const topic = {
+    id: row.id as string,
+    slug: row.slug as string,
+    title: row.title as string,
+    category: row.category as string,
+    excerpt: row.excerpt as string,
+    content: (row.content ?? "") as string,
+    duration: row.duration as string,
+    level: row.level as string,
+  };
+
+  const { data: relatedRows } = await supabase
+    .from("learn_topics")
+    .select("id, slug, title, category, excerpt, duration, level")
+    .neq("id", topic.id)
+    .order("category")
+    .limit(4);
+
+  const related = (relatedRows ?? []).sort((a, b) =>
+    a.category === topic.category ? -1 : b.category === topic.category ? 1 : 0
+  );
+
+  const { data: sameCatRows } = await supabase
+    .from("learn_topics")
+    .select("id, slug, title")
+    .eq("category", topic.category)
+    .neq("id", topic.id)
+    .limit(3);
+
+  const sameCat = sameCatRows ?? [];
 
   const levelColor: Record<string, string> = {
     Iniciante: "bg-mint text-ink",
@@ -158,20 +195,17 @@ export default async function LearnArticlePage({
                   Mais em {topic.category}
                 </div>
                 <div className="space-y-3">
-                  {learnTopics
-                    .filter((t) => t.category === topic.category && t.id !== topic.id)
-                    .slice(0, 3)
-                    .map((t) => (
-                      <Link
-                        key={t.id}
-                        href={`/aprender/${t.slug}`}
-                        className="group flex items-center gap-3 text-sm hover:text-coral transition-colors"
-                      >
-                        <div className="w-1.5 h-1.5 bg-coral shrink-0" />
-                        <span className="leading-snug">{t.title}</span>
-                      </Link>
-                    ))}
-                  {learnTopics.filter((t) => t.category === topic.category && t.id !== topic.id).length === 0 && (
+                  {sameCat.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/aprender/${t.slug}`}
+                      className="group flex items-center gap-3 text-sm hover:text-coral transition-colors"
+                    >
+                      <div className="w-1.5 h-1.5 bg-coral shrink-0" />
+                      <span className="leading-snug">{t.title}</span>
+                    </Link>
+                  ))}
+                  {sameCat.length === 0 && (
                     <p className="text-sm text-ink/50">Mais artigos em breve.</p>
                   )}
                 </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import type { ElementType, FormEvent, ReactNode } from "react";
+import { useState, useEffect } from "react";
+import type { ElementType, ReactNode } from "react";
 import Link from "next/link";
+import axios from "axios";
 import { useAuth } from "@/contexts/auth";
 import {
   Users, FileText, Flag, Megaphone, TrendingUp, Calendar,
@@ -10,12 +11,58 @@ import {
   AlertTriangle, Eye, Newspaper, Music, Plus, Send, ShoppingBag,
 } from "lucide-react";
 
-/* ── Mock data ──────────────────────────────────────── */
-const STATS = [
-  { label: "Membros", value: "8 247", delta: "+34 esta semana", icon: Users, color: "text-blue-600" },
-  { label: "Posts hoje", value: "127", delta: "+18% vs ontem", icon: FileText, color: "text-emerald-600" },
-  { label: "Denúncias activas", value: "4", delta: "2 novas hoje", icon: Flag, color: "text-coral" },
-  { label: "Eventos activos", value: "6", delta: "3 esta semana", icon: Calendar, color: "text-amber-600" },
+/* ── Tipos locais ──────────────────────────────────── */
+interface MemberRow {
+  id: string;
+  name: string;
+  username: string;
+  role: "mod" | "member";
+  posts: number;
+  joined: string;
+  online: boolean;
+}
+
+interface ReportRow {
+  id: string;
+  reason: string;
+  post: string;
+  author: string;
+  reporter: string;
+  ago: string;
+}
+
+interface EventRow {
+  id: string;
+  title: string;
+  date: string;
+  registered: number;
+  capacity: number;
+}
+
+interface AnnouncementRow {
+  id: string;
+  title: string;
+  audience: string;
+  status: string;
+  pinned: boolean;
+}
+
+interface ProductRow {
+  id: string;
+  title: string;
+  category: string;
+  price: string;
+  condition: string;
+  seller: string;
+  city: string;
+}
+
+/* ── Mock estático só para o gráfico de actividade ── */
+const STATS_LABELS = [
+  { label: "Membros", icon: Users, color: "text-blue-600" },
+  { label: "Posts hoje", icon: FileText, color: "text-emerald-600" },
+  { label: "Denúncias activas", icon: Flag, color: "text-coral" },
+  { label: "Eventos activos", icon: Calendar, color: "text-amber-600" },
 ];
 
 const ACTIVITY = [
@@ -28,38 +75,6 @@ const ACTIVITY = [
   { day: "Dom", posts: 127 },
 ];
 const maxPosts = Math.max(...ACTIVITY.map((a) => a.posts));
-
-const MOCK_MEMBERS = [
-  { id: "u1", name: "Yara Mucavele", username: "@yara.dnc", role: "mod", posts: 312, joined: "Jan 2024", online: true },
-  { id: "u2", name: "Eduardo Nhaca", username: "@eddu.edit", role: "member", posts: 198, joined: "Mar 2024", online: true },
-  { id: "u3", name: "Tânia Cossa", username: "@tania.draws", role: "member", posts: 87, joined: "Jun 2024", online: false },
-  { id: "u4", name: "Carlos Sitoe", username: "@c.sitoe", role: "member", posts: 45, joined: "Ago 2024", online: false },
-  { id: "u5", name: "Fátima Nhacolo", username: "@fat.km", role: "member", posts: 231, joined: "Fev 2024", online: true },
-  { id: "u6", name: "Grupo CRWN", username: "@crwn.crew", role: "mod", posts: 156, joined: "Mai 2024", online: false },
-];
-
-const MOCK_REPORTS = [
-  { id: "r1", reason: "Spam", post: "Compra seguidores por 500MZN...", author: "@unknown99", reporter: "@yara.dnc", ago: "5 min" },
-  { id: "r2", reason: "Assédio", post: "Comentário ofensivo num post de fanart...", author: "@troll_acc", reporter: "@tania.draws", ago: "2h" },
-  { id: "r3", reason: "Conteúdo explícito", post: "Imagem inapropriada partilhada no feed...", author: "@acc123", reporter: "@eddu.edit", ago: "5h" },
-  { id: "r4", reason: "Outro", post: "Informação falsa sobre concert BTS em Maputo...", author: "@fake_news", reporter: "@fat.km", ago: "1d" },
-];
-
-const INITIAL_EVENTS = [
-  { id: "e1", title: "Random Dance Play — Junho", date: "08 Jun", registered: 147, capacity: 200 },
-  { id: "e2", title: "Cover Dance Showcase Beira", date: "15 Jun", registered: 89, capacity: 150 },
-  { id: "e3", title: "Workshop Coreografia Avançada", date: "22 Jun", registered: 31, capacity: 40 },
-];
-
-const INITIAL_ANNOUNCEMENTS = [
-  { id: "a1", title: "Inscrições abertas para voluntários", audience: "Geral", status: "Publicado", pinned: true },
-  { id: "a2", title: "Actualização das regras da comunidade", audience: "Geral", status: "Publicado", pinned: false },
-];
-
-const INITIAL_PRODUCTS = [
-  { id: "p1", title: "Photocard Jungkook — Proof", category: "Photocards", price: "350", condition: "Novo", seller: "@yara.dnc", city: "Maputo" },
-  { id: "p2", title: "Lightstick BLACKPINK 2nd Gen", category: "Lightsticks", price: "2200", condition: "Usado", seller: "@eddu.edit", city: "Beira" },
-];
 
 const REASON_COLOR: Record<string, string> = {
   "Spam": "text-amber-700 bg-amber-50",
@@ -93,9 +108,14 @@ export default function AdminPage() {
   const [banned, setBanned] = useState<string[]>([]);
   const [createForm, setCreateForm] = useState<CreateForm>("evento");
   const [published, setPublished] = useState(false);
-  const [events, setEvents] = useState(INITIAL_EVENTS);
-  const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Dados vindos da BD
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [reports, setReports] = useState<ReportRow[]>([]);
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [announcements, setAnnouncements] = useState<AnnouncementRow[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
 
   // Evento form state
   const [evTitle, setEvTitle] = useState("");
@@ -105,6 +125,7 @@ export default function AdminPage() {
   const [evEnd, setEvEnd] = useState("");
   const [evLocation, setEvLocation] = useState("");
   const [evCity, setEvCity] = useState("Maputo");
+  const [evType, setEvType] = useState("encontro");
   const [evFree, setEvFree] = useState(true);
   const [evPrice, setEvPrice] = useState("");
   const [evCapacity, setEvCapacity] = useState("");
@@ -123,6 +144,15 @@ export default function AdminPage() {
   const [prSeller, setPrSeller] = useState("");
   const [prCity, setPrCity] = useState("Maputo");
 
+  useEffect(() => {
+    if (!user?.isAdmin) return;
+    axios.get<EventRow[]>("/api/admin/events").then((r) => setEvents(r.data)).catch(() => {});
+    axios.get<AnnouncementRow[]>("/api/admin/announcements").then((r) => setAnnouncements(r.data)).catch(() => {});
+    axios.get<ProductRow[]>("/api/admin/market").then((r) => setProducts(r.data)).catch(() => {});
+    axios.get<MemberRow[]>("/api/admin/members").then((r) => setMembers(r.data)).catch(() => {});
+    axios.get<ReportRow[]>("/api/admin/reports").then((r) => setReports(r.data)).catch(() => {});
+  }, [user?.isAdmin]);
+
   function openCreateForm(form: CreateForm) {
     setCreateForm(form);
     setPublished(false);
@@ -131,96 +161,85 @@ export default function AdminPage() {
 
   function clearCurrentForm({ keepStatus = false }: { keepStatus?: boolean } = {}) {
     if (!keepStatus) setPublished(false);
-
     if (createForm === "evento") {
-      setEvTitle("");
-      setEvDesc("");
-      setEvDate("");
-      setEvStart("");
-      setEvEnd("");
-      setEvLocation("");
-      setEvCity("Maputo");
-      setEvFree(true);
-      setEvPrice("");
-      setEvCapacity("");
-      return;
-    }
-
-    if (createForm === "anuncio") {
-      setAnTitle("");
-      setAnBody("");
-      setAnFandom("Geral");
-      setAnPin(false);
-      return;
-    }
-
-    if (createForm === "produto") {
-      setPrTitle("");
-      setPrPrice("");
-      setPrCategory("Photocards");
-      setPrCondition("Novo");
-      setPrSeller("");
-      setPrCity("Maputo");
-      return;
+      setEvTitle(""); setEvDesc(""); setEvDate(""); setEvStart(""); setEvEnd("");
+      setEvLocation(""); setEvCity("Maputo"); setEvType("encontro"); setEvFree(true); setEvPrice(""); setEvCapacity("");
+    } else if (createForm === "anuncio") {
+      setAnTitle(""); setAnBody(""); setAnFandom("Geral"); setAnPin(false);
+    } else if (createForm === "produto") {
+      setPrTitle(""); setPrPrice(""); setPrCategory("Photocards"); setPrCondition("Novo"); setPrSeller(""); setPrCity("Maputo");
     }
   }
 
-  function formatEventDate(value: string) {
-    if (!value) return "A definir";
-
-    const [, month, day] = value.split("-").map(Number);
-    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    return `${String(day).padStart(2, "0")} ${months[month - 1] ?? ""}`;
-  }
-
-  function handlePublish(e: FormEvent) {
+  async function handlePublish(e: { preventDefault(): void }) {
     e.preventDefault();
-
-    if (createForm === "evento") {
-      const capacity = Number(evCapacity) || 100;
-      setEvents((items) => [
-        {
-          id: `event-${Date.now()}`,
+    setSubmitting(true);
+    try {
+      if (createForm === "evento") {
+        await axios.post("/api/admin/events", {
           title: evTitle.trim(),
-          date: formatEventDate(evDate),
-          registered: 0,
-          capacity,
-        },
-        ...items,
-      ]);
-    }
-
-    if (createForm === "anuncio") {
-      setAnnouncements((items) => [
-        {
-          id: `announcement-${Date.now()}`,
+          description: evDesc.trim(),
+          date: evDate,
+          startTime: evStart,
+          endTime: evEnd || undefined,
+          location: evLocation.trim(),
+          city: evCity,
+          type: evType,
+          free: evFree,
+          price: evFree ? 0 : Number(evPrice),
+          capacity: evCapacity || undefined,
+        });
+        const { data } = await axios.get<EventRow[]>("/api/admin/events");
+        setEvents(data);
+      } else if (createForm === "anuncio") {
+        await axios.post("/api/admin/announcements", {
           title: anTitle.trim(),
+          body: anBody.trim(),
           audience: anFandom,
-          status: "Publicado",
           pinned: anPin,
-        },
-        ...items,
-      ]);
-    }
-
-    if (createForm === "produto") {
-      setProducts((items) => [
-        {
-          id: `product-${Date.now()}`,
+        });
+        const { data } = await axios.get<AnnouncementRow[]>("/api/admin/announcements");
+        setAnnouncements(data);
+      } else if (createForm === "produto") {
+        await axios.post("/api/admin/market", {
           title: prTitle.trim(),
-          category: prCategory,
           price: prPrice,
+          category: prCategory,
           condition: prCondition,
           seller: prSeller.trim(),
           city: prCity,
-        },
-        ...items,
-      ]);
+        });
+        const { data } = await axios.get<ProductRow[]>("/api/admin/market");
+        setProducts(data);
+      }
+      setPublished(true);
+      clearCurrentForm({ keepStatus: true });
+      setTimeout(() => setPublished(false), 3000);
+    } catch {
+      // silencioso — o botão volta ao estado normal
+    } finally {
+      setSubmitting(false);
     }
+  }
 
-    setPublished(true);
-    clearCurrentForm({ keepStatus: true });
-    setTimeout(() => setPublished(false), 3000);
+  async function deleteEvent(id: string) {
+    await axios.delete("/api/admin/events", { data: { id } });
+    setEvents((items) => items.filter((x) => x.id !== id));
+  }
+
+  async function deleteAnnouncement(id: string) {
+    await axios.delete("/api/admin/announcements", { data: { id } });
+    setAnnouncements((items) => items.filter((x) => x.id !== id));
+  }
+
+  async function deleteProduct(id: string) {
+    await axios.delete("/api/admin/market", { data: { id } });
+    setProducts((items) => items.filter((x) => x.id !== id));
+  }
+
+  async function dismissReport(id: string) {
+    await axios.patch("/api/admin/reports", { id, status: "ignorado" });
+    setDismissed((p) => [...p, id]);
   }
 
   if (!user?.isAdmin) {
@@ -237,18 +256,26 @@ export default function AdminPage() {
     );
   }
 
-  const filteredMembers = MOCK_MEMBERS.filter((m) => {
-    const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) ||
+  const filteredMembers = members.filter((m) => {
+    const matchSearch =
+      m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.username.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === "todos" || m.role === roleFilter;
     return matchSearch && matchRole;
   });
 
-  const activeReports = MOCK_REPORTS.filter((r) => !dismissed.includes(r.id));
+  const activeReports = reports.filter((r) => !dismissed.includes(r.id));
+
+  const statsValues = [
+    String(members.length || "—"),
+    "—",
+    String(activeReports.length || "0"),
+    String(events.length || "—"),
+  ];
 
   const tabs: { key: Tab; label: string; badge?: number }[] = [
     { key: "overview", label: "Visão geral" },
-    { key: "membros", label: "Membros", badge: MOCK_MEMBERS.length },
+    { key: "membros", label: "Membros", badge: members.length },
     { key: "denuncias", label: "Denúncias", badge: activeReports.length },
     { key: "conteudo", label: "Conteúdo" },
     { key: "criar", label: "Criar" },
@@ -278,8 +305,9 @@ export default function AdminPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`shrink-0 flex items-center gap-2 px-4 sm:px-5 py-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.15em] border-b-2 -mb-px transition-all ${tab === t.key ? "border-coral text-ink" : "border-transparent text-ink/40 hover:text-ink"
-              }`}
+            className={`shrink-0 flex items-center gap-2 px-4 sm:px-5 py-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.15em] border-b-2 -mb-px transition-all ${
+              tab === t.key ? "border-coral text-ink" : "border-transparent text-ink/40 hover:text-ink"
+            }`}
           >
             {t.label}
             {t.badge !== undefined && (
@@ -294,19 +322,16 @@ export default function AdminPage() {
       {/* ── OVERVIEW ──────────────────────────────────── */}
       {tab === "overview" && (
         <div className="space-y-6">
-          {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {STATS.map((s) => (
+            {STATS_LABELS.map((s, i) => (
               <div key={s.label} className="border border-ink/10 p-4 space-y-2">
                 <s.icon size={16} strokeWidth={1.75} className={s.color} />
-                <div className="font-display font-black text-2xl sm:text-3xl leading-none">{s.value}</div>
+                <div className="font-display font-black text-2xl sm:text-3xl leading-none">{statsValues[i]}</div>
                 <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink/50">{s.label}</div>
-                <div className="font-mono text-[9px] text-ink/30">{s.delta}</div>
               </div>
             ))}
           </div>
 
-          {/* Gráfico actividade 7 dias */}
           <div className="border border-ink/10 p-5">
             <div className="flex items-center gap-2 mb-5">
               <TrendingUp size={14} className="text-coral" strokeWidth={2} />
@@ -328,7 +353,6 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Denúncias pendentes (mini) */}
           {activeReports.length > 0 && (
             <div className="border border-coral/20 p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -379,7 +403,6 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Tabela */}
           <div className="border border-ink/10 overflow-x-auto">
             <table className="w-full min-w-[560px]">
               <thead>
@@ -460,7 +483,7 @@ export default function AdminPage() {
                     {r.reason}
                   </span>
                   <span className="font-mono text-[9px] text-ink/40">
-                    #{r.id} · denunciado por {r.reporter}
+                    denunciado por {r.reporter}
                   </span>
                 </div>
                 <span className="font-mono text-[9px] text-ink/30 shrink-0">{r.ago}</span>
@@ -476,7 +499,7 @@ export default function AdminPage() {
                   <Trash2 size={11} strokeWidth={2} /> Apagar post
                 </button>
                 <button
-                  onClick={() => setDismissed((p) => [...p, r.id])}
+                  onClick={() => dismissReport(r.id)}
                   className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-2 border border-ink/20 text-ink/50 hover:border-ink hover:text-ink transition-colors"
                 >
                   <X size={11} strokeWidth={2} /> Ignorar
@@ -490,7 +513,6 @@ export default function AdminPage() {
       {/* ── CRIAR ────────────────────────────────────── */}
       {tab === "criar" && (
         <div className="space-y-5">
-          {/* Selector de tipo */}
           <div className="flex gap-2 flex-wrap">
             {([
               { key: "evento", label: "Evento", icon: Calendar },
@@ -500,8 +522,9 @@ export default function AdminPage() {
               <button
                 key={key}
                 onClick={() => { setCreateForm(key); setPublished(false); }}
-                className={`flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-[0.15em] border transition-colors ${createForm === key ? "bg-ink text-bone border-ink" : "border-ink/20 text-ink/50 hover:border-ink hover:text-ink"
-                  }`}
+                className={`flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-[0.15em] border transition-colors ${
+                  createForm === key ? "bg-ink text-bone border-ink" : "border-ink/20 text-ink/50 hover:border-ink hover:text-ink"
+                }`}
               >
                 <Icon size={13} strokeWidth={1.75} />
                 {label}
@@ -521,7 +544,7 @@ export default function AdminPage() {
                 <div className="space-y-3">
                   <Field label="Título do evento *">
                     <input required value={evTitle} onChange={e => setEvTitle(e.target.value)}
-                      placeholder="ex: Random Dance Play — Julho 2025"
+                      placeholder="ex: Random Dance Play — Julho 2026"
                       className={inputCls} />
                   </Field>
                   <Field label="Descrição">
@@ -529,6 +552,20 @@ export default function AdminPage() {
                       placeholder="Descreve o evento, programa, regras..."
                       className={`${inputCls} resize-none`} />
                   </Field>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Field label="Tipo *">
+                      <select value={evType} onChange={e => setEvType(e.target.value)} className={inputCls}>
+                        {["random-dance", "cover-dance", "encontro", "festival", "workshop", "concurso"].map(t =>
+                          <option key={t} value={t}>{t.replace("-", " ")}</option>
+                        )}
+                      </select>
+                    </Field>
+                    <Field label="Cidade *">
+                      <select value={evCity} onChange={e => setEvCity(e.target.value)} className={inputCls}>
+                        {["Maputo", "Matola", "Beira", "Nampula", "Online"].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <Field label="Data *">
                       <input required type="date" value={evDate} onChange={e => setEvDate(e.target.value)} className={inputCls} />
@@ -545,34 +582,27 @@ export default function AdminPage() {
                       <input required value={evLocation} onChange={e => setEvLocation(e.target.value)}
                         placeholder="ex: Jardim dos Professores" className={inputCls} />
                     </Field>
-                    <Field label="Cidade *">
-                      <select value={evCity} onChange={e => setEvCity(e.target.value)} className={inputCls}>
-                        {["Maputo", "Matola", "Beira", "Nampula", "Online"].map(c => <option key={c}>{c}</option>)}
-                      </select>
-                    </Field>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Capacidade máxima">
                       <input type="number" min="1" value={evCapacity} onChange={e => setEvCapacity(e.target.value)}
                         placeholder="ex: 200" className={inputCls} />
                     </Field>
-                    <Field label="Entrada">
-                      <div className="flex gap-3 items-center h-[38px]">
-                        <label className="flex items-center gap-1.5 font-mono text-xs text-ink/60 cursor-pointer">
-                          <input type="radio" checked={evFree} onChange={() => setEvFree(true)} className="accent-coral" />
-                          Gratuita
-                        </label>
-                        <label className="flex items-center gap-1.5 font-mono text-xs text-ink/60 cursor-pointer">
-                          <input type="radio" checked={!evFree} onChange={() => setEvFree(false)} className="accent-coral" />
-                          Paga
-                        </label>
-                        {!evFree && (
-                          <input type="number" min="1" value={evPrice} onChange={e => setEvPrice(e.target.value)}
-                            placeholder="MZN" className={`${inputCls} w-24`} />
-                        )}
-                      </div>
-                    </Field>
                   </div>
+                  <Field label="Entrada">
+                    <div className="flex gap-3 items-center h-[38px]">
+                      <label className="flex items-center gap-1.5 font-mono text-xs text-ink/60 cursor-pointer">
+                        <input type="radio" checked={evFree} onChange={() => setEvFree(true)} className="accent-coral" />
+                        Gratuita
+                      </label>
+                      <label className="flex items-center gap-1.5 font-mono text-xs text-ink/60 cursor-pointer">
+                        <input type="radio" checked={!evFree} onChange={() => setEvFree(false)} className="accent-coral" />
+                        Paga
+                      </label>
+                      {!evFree && (
+                        <input type="number" min="1" value={evPrice} onChange={e => setEvPrice(e.target.value)}
+                          placeholder="MZN" className={`${inputCls} w-24`} />
+                      )}
+                    </div>
+                  </Field>
                 </div>
               </>
             )}
@@ -665,10 +695,12 @@ export default function AdminPage() {
               </button>
               <button
                 type="submit"
-                className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-[0.15em] transition-all ${published
-                  ? "bg-emerald-500 text-bone border border-emerald-500"
-                  : "bg-ink text-bone hover:bg-ink/80 border border-ink"
-                  }`}
+                disabled={submitting}
+                className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-[0.15em] transition-all disabled:opacity-50 ${
+                  published
+                    ? "bg-emerald-500 text-bone border border-emerald-500"
+                    : "bg-ink text-bone hover:bg-ink/80 border border-ink"
+                }`}
               >
                 {published ? (
                   <><Check size={13} strokeWidth={2.5} /> Publicado!</>
@@ -711,8 +743,11 @@ export default function AdminPage() {
                   <span className="font-mono text-[9px] uppercase px-2 py-0.5 bg-emerald-50 text-emerald-700">
                     {a.status}
                   </span>
-                  <button className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink border border-ink/10 hover:border-ink px-2 py-1 transition-colors">
-                    Editar
+                  <button
+                    onClick={() => deleteAnnouncement(a.id)}
+                    className="font-mono text-[9px] uppercase tracking-[0.1em] text-coral/60 hover:text-coral border border-coral/10 hover:border-coral px-2 py-1 transition-colors"
+                  >
+                    <Trash2 size={10} />
                   </button>
                 </div>
               </div>
@@ -758,14 +793,22 @@ export default function AdminPage() {
               <div key={e.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-ink/5 last:border-0 hover:bg-ink/2 transition-colors">
                 <div className="min-w-0">
                   <div className="font-mono text-xs text-ink/70 truncate">{e.title}</div>
-                  <div className="font-mono text-[9px] text-ink/30 mt-0.5">{e.date} · {e.registered}/{e.capacity} inscritos</div>
+                  <div className="font-mono text-[9px] text-ink/30 mt-0.5">
+                    {e.date} · {e.registered}/{e.capacity} inscritos
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="w-16 h-1.5 bg-ink/10">
-                    <div className="h-full bg-coral" style={{ width: `${Math.min((e.registered / e.capacity) * 100, 100)}%` }} />
+                    <div
+                      className="h-full bg-coral"
+                      style={{ width: `${Math.min(e.capacity > 0 ? (e.registered / e.capacity) * 100 : 0, 100)}%` }}
+                    />
                   </div>
-                  <button className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink border border-ink/10 hover:border-ink px-2 py-1 transition-colors">
-                    Editar
+                  <button
+                    onClick={() => deleteEvent(e.id)}
+                    className="font-mono text-[9px] uppercase tracking-[0.1em] text-coral/60 hover:text-coral border border-coral/10 hover:border-coral px-2 py-1 transition-colors"
+                  >
+                    <Trash2 size={10} />
                   </button>
                 </div>
               </div>
@@ -794,17 +837,12 @@ export default function AdminPage() {
                     {p.category} · {p.condition} · {p.price} MZN · {p.seller} · {p.city}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink border border-ink/10 hover:border-ink px-2 py-1 transition-colors">
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => setProducts((items) => items.filter((x) => x.id !== p.id))}
-                    className="font-mono text-[9px] uppercase tracking-[0.1em] text-coral/60 hover:text-coral border border-coral/10 hover:border-coral px-2 py-1 transition-colors"
-                  >
-                    <Trash2 size={10} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => deleteProduct(p.id)}
+                  className="shrink-0 font-mono text-[9px] uppercase tracking-[0.1em] text-coral/60 hover:text-coral border border-coral/10 hover:border-coral px-2 py-1 transition-colors"
+                >
+                  <Trash2 size={10} />
+                </button>
               </div>
             ))}
           </div>
@@ -821,7 +859,7 @@ export default function AdminPage() {
               </button>
             </div>
             <div className="px-4 py-3 font-mono text-[10px] text-ink/30 uppercase tracking-[0.15em]">
-              10 artistas · 8 talentos registados
+              Gerido pela equipa KM
             </div>
           </div>
         </div>

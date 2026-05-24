@@ -1,18 +1,39 @@
 import Link from "next/link";
-import { events } from "@/data/events";
+import { supabase } from "@/lib/supabase";
 import { SectionHeader } from "@/components/shared/SectionHeader";
-import { MapPin, Clock, ArrowUpRight, Users } from "lucide-react";
+import { MapPin, Clock, Users } from "lucide-react";
 
 const monthMap: Record<string, string> = {
   "01": "JAN", "02": "FEV", "03": "MAR", "04": "ABR", "05": "MAI", "06": "JUN",
   "07": "JUL", "08": "AGO", "09": "SET", "10": "OUT", "11": "NOV", "12": "DEZ",
 };
 
-export function EventsSection() {
-  const upcoming = events.slice(0, 4);
+export async function EventsSection() {
+  const { data } = await supabase
+    .from("events")
+    .select("id, slug, title, type, date, start_time, end_time, location, city, capacity, registered, is_free, price, cover_bg")
+    .order("date", { ascending: true })
+    .limit(4);
+
+  const upcoming = (data ?? []).map((row) => ({
+    id: row.id as string,
+    slug: row.slug as string,
+    title: row.title as string,
+    type: row.type as string,
+    date: row.date as string,
+    startTime: row.start_time as string,
+    endTime: (row.end_time ?? undefined) as string | undefined,
+    location: row.location as string,
+    city: row.city as string,
+    capacity: (row.capacity ?? undefined) as number | undefined,
+    registered: row.registered as number,
+    free: row.is_free as boolean,
+    price: row.price as number,
+    coverBg: row.cover_bg as string,
+  }));
+
   return (
     <section className="py-16 lg:py-24 bg-ink text-bone relative overflow-hidden grain">
-      {/* Decorative element */}
       <div
         aria-hidden
         className="absolute left-[-2rem] -bottom-12 lg:-bottom-24 hangul-deco font-black text-bone/[0.03] select-none pointer-events-none leading-none"
@@ -32,7 +53,7 @@ export function EventsSection() {
         />
 
         <div className="mt-10 lg:mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
-          {upcoming.map((event, i) => {
+          {upcoming.map((event) => {
             const [year, month, day] = event.date.split("-");
             const progress = event.capacity
               ? Math.min(100, Math.round((event.registered / event.capacity) * 100))
@@ -50,7 +71,7 @@ export function EventsSection() {
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/60 to-transparent" />
                   <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-bone text-ink p-2 sm:p-3 flex flex-col items-center min-w-[60px] sm:min-w-[70px]">
                     <div className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em]">
-                      {monthMap[month]} {year}
+                      {monthMap[month as string]} {year}
                     </div>
                     <div className="font-display font-black text-3xl sm:text-4xl leading-none mt-1">
                       {day}

@@ -1,10 +1,25 @@
 import Link from "next/link";
-import { learnTopics } from "@/data/learn";
+import { supabase } from "@/lib/supabase";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { BookOpen, Clock, ArrowUpRight } from "lucide-react";
 
-export function LearnSection() {
-  const topics = learnTopics.slice(0, 6);
+export async function LearnSection() {
+  const { data } = await supabase
+    .from("learn_topics")
+    .select("id, slug, title, category, excerpt, duration, level")
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const topics = (data ?? []).map((row) => ({
+    id: row.id as string,
+    slug: row.slug as string,
+    title: row.title as string,
+    category: row.category as string,
+    excerpt: row.excerpt as string,
+    duration: row.duration as string,
+    level: row.level as string,
+  }));
+
   return (
     <section className="py-16 lg:py-24 bg-ink text-bone relative overflow-hidden grain">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">

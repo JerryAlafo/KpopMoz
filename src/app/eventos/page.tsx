@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { events } from "@/data/events";
+import axios from "axios";
 import { Marquee } from "@/components/shared/Marquee";
 import { MapPin, Clock, Users, ArrowUpRight, Calendar } from "lucide-react";
-import type { EventType } from "@/types";
+import type { EventItem, EventType } from "@/types";
 
 const monthMap: Record<string, string> = {
   "01": "JAN", "02": "FEV", "03": "MAR", "04": "ABR", "05": "MAI", "06": "JUN",
@@ -32,7 +32,12 @@ const typeLabel: Record<string, string> = {
 };
 
 export default function EventosPage() {
+  const [events, setEvents] = useState<EventItem[]>([]);
   const [active, setActive] = useState<EventType | "todos">("todos");
+
+  useEffect(() => {
+    axios.get<EventItem[]>("/api/events").then((r) => setEvents(r.data));
+  }, []);
 
   const filtered = active === "todos" ? events : events.filter((e) => e.type === active);
 
@@ -97,7 +102,7 @@ export default function EventosPage() {
             <div className="py-20 text-center">
               <div className="font-display font-black text-6xl text-ink/10 mb-4">0</div>
               <p className="font-display font-bold text-2xl text-ink/50">
-                Sem eventos nesta categoria.
+                {events.length === 0 ? "A carregar eventos..." : "Sem eventos nesta categoria."}
               </p>
             </div>
           ) : (
@@ -121,7 +126,7 @@ export default function EventosPage() {
                       >
                         <div className="bg-bone text-ink inline-flex items-baseline gap-2 px-3 py-1.5 w-fit">
                           <span className="font-mono text-[10px] tracking-[0.2em]">
-                            {monthMap[month]} {year}
+                            {monthMap[month as string]} {year}
                           </span>
                         </div>
                         <div>

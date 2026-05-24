@@ -1,10 +1,27 @@
 import Link from "next/link";
-import { marketItems } from "@/data/market";
+import { supabase } from "@/lib/supabase";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { MapPin } from "lucide-react";
 
-export function MarketplaceSection() {
-  const items = marketItems.slice(0, 6);
+export async function MarketplaceSection() {
+  const { data } = await supabase
+    .from("market_items")
+    .select("id, title, category, price, seller, city, condition, bg")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const items = (data ?? []).map((row) => ({
+    id: row.id as string,
+    title: row.title as string,
+    category: row.category as string,
+    price: row.price as number,
+    seller: row.seller as string,
+    city: row.city as string,
+    condition: row.condition as string,
+    bg: row.bg as string,
+  }));
+
   return (
     <section className="py-16 lg:py-24 bg-bone">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -35,7 +52,7 @@ export function MarketplaceSection() {
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <div className="absolute bottom-3 right-3 bg-ink text-bone px-2.5 py-1 font-mono text-xs tracking-wider font-semibold">
-                  {item.price} {item.currency}
+                  {item.price} MZN
                 </div>
               </div>
               <div className="pt-3 lg:pt-4 space-y-1">

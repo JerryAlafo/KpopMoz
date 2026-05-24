@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { marketItems } from "@/data/market";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { MapPin, Filter } from "lucide-react";
 import type { MarketItem } from "@/types";
 
@@ -14,11 +13,16 @@ const categories: Category[] = [
 ];
 
 export default function MarketplacePage() {
+  const [items, setItems] = useState<MarketItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<Category>("Tudo");
   const [activeCondition, setActiveCondition] = useState<Condition>("Todos");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filtered = marketItems.filter((item) => {
+  useEffect(() => {
+    axios.get<MarketItem[]>("/api/market").then((r) => setItems(r.data));
+  }, []);
+
+  const filtered = items.filter((item) => {
     const catMatch = activeCategory === "Tudo" || item.category === activeCategory;
     const condMatch = activeCondition === "Todos" || item.condition === activeCondition;
     return catMatch && condMatch;
@@ -99,12 +103,12 @@ export default function MarketplacePage() {
             <div className="py-20 text-center">
               <div className="font-display font-black text-6xl text-ink/10 mb-4">0</div>
               <p className="font-display font-bold text-2xl text-ink/50">
-                Sem resultados para este filtro.
+                {items.length === 0 ? "A carregar produtos..." : "Sem resultados para este filtro."}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-              {filtered.map((item, i) => (
+              {filtered.map((item) => (
                 <div key={item.id} className="group flex flex-col card-tilt cursor-pointer">
                   <div
                     className="relative aspect-square overflow-hidden grain"

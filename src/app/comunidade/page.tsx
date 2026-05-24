@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { ArrowRight, Users, MessageSquare, Heart, Calendar, Sparkles, Trophy } from "lucide-react";
+import { Users, MessageSquare, Heart, Calendar, Sparkles, Trophy } from "lucide-react";
+import { SignUpCard } from "@/components/comunidade/SignUpCard";
 
 const fandoms = [
   { name: "ARMY", group: "BTS", members: 1842, color: "#7a2c5e" },
@@ -80,57 +80,7 @@ export default function ComunidadePage() {
             </div>
 
             {/* Sign-up card */}
-            <div className="lg:sticky lg:top-28 self-start bg-ink text-bone p-6 lg:p-8 relative">
-              <div className="absolute -top-3 -right-3 bg-coral text-ink px-3 py-1.5 font-mono text-[10px] tracking-[0.2em] uppercase font-semibold">
-                Grátis
-              </div>
-              <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-bone/60 mb-3">
-                Criar conta KM
-              </div>
-              <h3 className="font-display font-bold text-2xl lg:text-3xl leading-tight">
-                Bem-vindo à<br />comunidade.
-              </h3>
-              <div className="space-y-3 mt-6">
-                <label className="block">
-                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-bone/60">Nome</span>
-                  <input
-                    type="text"
-                    placeholder="O teu nome"
-                    className="w-full bg-transparent border-b border-bone/30 py-2 mt-1 focus:border-coral focus:outline-none transition-colors text-sm"
-                  />
-                </label>
-                <label className="block">
-                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-bone/60">Email</span>
-                  <input
-                    type="email"
-                    placeholder="o.teu@email.mz"
-                    className="w-full bg-transparent border-b border-bone/30 py-2 mt-1 focus:border-coral focus:outline-none transition-colors text-sm"
-                  />
-                </label>
-                <label className="block">
-                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-bone/60">Cidade</span>
-                  <select
-                    className="w-full bg-transparent border-b border-bone/30 py-2 mt-1 focus:border-coral focus:outline-none transition-colors text-sm text-bone/80"
-                  >
-                    <option className="text-ink">Maputo</option>
-                    <option className="text-ink">Matola</option>
-                    <option className="text-ink">Beira</option>
-                    <option className="text-ink">Nampula</option>
-                    <option className="text-ink">Outra</option>
-                  </select>
-                </label>
-              </div>
-              <button
-                type="button"
-                className="mt-6 w-full bg-coral text-ink font-mono text-xs tracking-[0.2em] uppercase font-semibold py-3 hover:bg-bone transition-colors inline-flex items-center justify-center gap-2"
-              >
-                Criar conta
-                <ArrowRight size={14} />
-              </button>
-              <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-bone/40 mt-4 text-center">
-                Já tens conta? <Link href="/entrar" className="text-coral hover:underline">Entrar</Link>
-              </p>
-            </div>
+            <SignUpCard />
           </div>
         </div>
       </section>

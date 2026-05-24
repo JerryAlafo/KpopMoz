@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { learnTopics } from "@/data/learn";
+import { supabase } from "@/lib/supabase";
 import { BookOpen, Clock, ArrowUpRight, Languages, Globe, History } from "lucide-react";
 
 const categories = [
@@ -9,7 +9,14 @@ const categories = [
   { name: "História", Icon: History, desc: "As cinco gerações, marcos e viragens da indústria.", count: 6 },
 ];
 
-export default function AprenderPage() {
+export default async function AprenderPage() {
+  const { data } = await supabase
+    .from("learn_topics")
+    .select("id, slug, title, category, excerpt, duration, level")
+    .order("created_at", { ascending: false });
+
+  const topics = data ?? [];
+
   return (
     <>
       <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 bg-ink text-bone relative overflow-hidden grain">
@@ -81,7 +88,7 @@ export default function AprenderPage() {
             </h2>
           </div>
           <div className="space-y-3">
-            {learnTopics.map((topic, i) => (
+            {topics.map((topic, i) => (
               <Link
                 key={topic.id}
                 href={`/aprender/${topic.slug}`}

@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 export interface KMUser {
   name: string;
@@ -9,24 +10,13 @@ export interface KMUser {
   city: string;
   bio: string;
   fandoms: string[];
-  joinedAt: string;
   isAdmin?: boolean;
+  image?: string | null;
 }
-
-const DEMO_USER: KMUser = {
-  name: "Leila Muteia",
-  username: "@leila.muteia",
-  email: "leila@email.mz",
-  city: "Maputo",
-  bio: "ARMY desde 2017 · Cover dancer · Membro KM desde 2021",
-  fandoms: ["ARMY", "BLINK", "ONCE"],
-  joinedAt: "2021-03-15",
-  isAdmin: true,
-};
 
 interface AuthCtx {
   user: KMUser | null;
-  login: (email: string) => void;
+  login: () => void;
   logout: () => void;
 }
 
@@ -37,24 +27,27 @@ const AuthContext = createContext<AuthCtx>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<KMUser | null>(null);
+  const { data: session } = useSession();
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("km_session");
-      if (stored) setUser(JSON.parse(stored));
-    } catch {}
-  }, []);
+  const user: KMUser | null = session?.user
+    ? {
+        name:     session.user.name     ?? "",
+        username: session.user.username ?? "",
+        email:    session.user.email    ?? "",
+        city:     session.user.city     ?? "Maputo",
+        bio:      session.user.bio      ?? "",
+        fandoms:  session.user.fandoms  ?? [],
+        isAdmin:  session.user.isAdmin  ?? false,
+        image:    session.user.image,
+      }
+    : null;
 
-  function login(email: string) {
-    const u = { ...DEMO_USER, email };
-    setUser(u);
-    localStorage.setItem("km_session", JSON.stringify(u));
+  function login() {
+    signIn("google", { callbackUrl: "/conta" });
   }
 
   function logout() {
-    setUser(null);
-    localStorage.removeItem("km_session");
+    signOut({ callbackUrl: "/" });
   }
 
   return (

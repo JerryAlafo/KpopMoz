@@ -3,21 +3,15 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/auth";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "KPOP.MZ — Comunidade K-POP de Moçambique",
   description:
     "O ecossistema digital da comunidade K-POP em Moçambique. Notícias, eventos, talentos locais, marketplace e cultura coreana, desde 2020.",
   keywords: [
-    "K-POP",
-    "Moçambique",
-    "Maputo",
-    "BTS",
-    "BLACKPINK",
-    "Stray Kids",
-    "Cover Dance",
-    "KpopMoçambique",
-    "KM",
+    "K-POP", "Moçambique", "Maputo", "BTS", "BLACKPINK",
+    "Stray Kids", "Cover Dance", "KpopMoçambique", "KM",
   ],
   icons: {
     icon: "/favicon.png",
@@ -32,11 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-MZ">
       <head>
@@ -48,11 +38,13 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bone text-ink antialiased font-body">
-        <AuthProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </AuthProvider>
+        <SessionProvider>
+          <AuthProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );

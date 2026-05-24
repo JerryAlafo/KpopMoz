@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { events } from "@/data/events";
 import { Calendar, MapPin, Clock, CheckCircle2, ArrowUpRight } from "lucide-react";
+import type { EventItem } from "@/types";
 
 const monthMap: Record<string, string> = {
   "01": "JAN", "02": "FEV", "03": "MAR", "04": "ABR", "05": "MAI", "06": "JUN",
@@ -20,7 +21,7 @@ const pastEventsData = [
     location: "Praça da Independência",
     city: "Maputo",
     free: true,
-    coverBg: "linear-gradient(135deg, #ff3d68 0%, #ffd23f 100%)",
+    coverBg: "linear-gradient(135deg, #7B65C8 0%, #ffd23f 100%)",
   },
   {
     id: "p2",
@@ -50,20 +51,8 @@ const pastEventsData = [
   },
 ];
 
-const upcomingRegistered = events.slice(0, 3);
-
 function EventCard({
-  title,
-  slug,
-  date,
-  startTime,
-  endTime,
-  location,
-  city,
-  free,
-  price,
-  coverBg,
-  past = false,
+  title, slug, date, startTime, endTime, location, city, free, price, coverBg, past = false,
 }: {
   title: string; slug: string; date: string; startTime: string; endTime?: string;
   location: string; city: string; free: boolean; price?: number; coverBg: string; past?: boolean;
@@ -72,22 +61,18 @@ function EventCard({
 
   return (
     <div className={`flex gap-3 sm:gap-4 p-4 border border-ink/10 transition-all ${past ? "opacity-60 hover:opacity-100" : "hover:border-ink/30"}`}>
-      {/* Date badge */}
       <div
         className={`shrink-0 w-12 h-12 sm:w-14 sm:h-14 grain flex flex-col items-center justify-center ${past ? "grayscale" : ""}`}
         style={{ background: coverBg }}
       >
-        <div className="font-mono text-[8px] sm:text-[9px] text-bone/80">{monthMap[month]}</div>
+        <div className="font-mono text-[8px] sm:text-[9px] text-bone/80">{monthMap[month as string]}</div>
         <div className="font-display font-black text-lg sm:text-xl text-bone leading-none">{day}</div>
       </div>
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
           {past ? (
-            <div className="font-display font-semibold text-sm sm:text-base leading-tight">
-              {title}
-            </div>
+            <div className="font-display font-semibold text-sm sm:text-base leading-tight">{title}</div>
           ) : (
             <Link
               href={`/eventos/${slug}`}
@@ -126,6 +111,15 @@ function EventCard({
 }
 
 export default function MeusEventosPage() {
+  const [upcomingRegistered, setUpcomingRegistered] = useState<EventItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/events", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (Array.isArray(data)) setUpcomingRegistered(data.slice(0, 3)); })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="space-y-8 lg:space-y-10">
       <div>
@@ -151,8 +145,22 @@ export default function MeusEventosPage() {
           </Link>
         </div>
         <div className="space-y-3">
-          {upcomingRegistered.map((event) => (
-            <EventCard key={event.id} {...event} slug={event.slug} price={event.price} />
+          {upcomingRegistered.length === 0 ? (
+            <p className="font-mono text-xs text-ink/30 tracking-[0.15em] uppercase">A carregar...</p>
+          ) : upcomingRegistered.map((event) => (
+            <EventCard
+              key={event.id}
+              title={event.title}
+              slug={event.slug}
+              date={event.date}
+              startTime={event.startTime}
+              endTime={event.endTime}
+              location={event.location}
+              city={event.city}
+              free={event.free}
+              price={event.price}
+              coverBg={event.coverBg}
+            />
           ))}
         </div>
       </section>
