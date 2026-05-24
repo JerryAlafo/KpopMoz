@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Search, LogOut, User } from "lucide-react";
@@ -24,6 +25,8 @@ const DARK_HERO_ROUTES = [
   "/termos",
   "/privacidade",
   "/cookies",
+  "/eventos",
+  "/aprender",
 ];
 
 export function Header() {
@@ -80,17 +83,15 @@ export function Header() {
             light ? "text-ink" : "text-bone"
           )}>
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className={cn(
-                "relative w-9 h-9 lg:w-10 lg:h-10 flex items-center justify-center transition-colors duration-300",
-                light ? "bg-ink" : "bg-coral"
-              )}>
-                <span className="hangul-deco text-bone text-lg lg:text-xl leading-none">K</span>
-                <span className={cn(
-                  "absolute -top-1 -right-1 w-2.5 h-2.5 transition-colors duration-300",
-                  light ? "bg-coral" : "bg-bone"
-                )} />
-              </div>
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <Image
+                src="/favicon.png"
+                alt="KPOP.MZ"
+                width={40}
+                height={40}
+                className="w-9 h-9 lg:w-10 lg:h-10 object-contain"
+                priority
+              />
               <div className="leading-none">
                 <div className="font-display text-base lg:text-lg font-bold tracking-tight">
                   KPOP<span className="text-coral">.</span>MZ

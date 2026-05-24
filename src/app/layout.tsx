@@ -19,6 +19,11 @@ export const metadata: Metadata = {
     "KpopMoçambique",
     "KM",
   ],
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   openGraph: {
     title: "KPOP.MZ — Comunidade K-POP de Moçambique",
     description: "O coração do K-POP bate em Moçambique. Desde 2020.",
