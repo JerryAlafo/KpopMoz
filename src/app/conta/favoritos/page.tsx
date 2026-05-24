@@ -71,7 +71,7 @@ export default function FavoritosPage() {
         if (Array.isArray(data?.items)) setRealNews(data.items);
         setHasMoreNews(Boolean(data?.hasMore));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (mounted) setNewsLoading(false);
       });
@@ -84,7 +84,7 @@ export default function FavoritosPage() {
         if (Array.isArray(data?.items)) setArtists(data.items);
         setHasMoreArtists(Boolean(data?.hasMore));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (mounted) setArtistsLoading(false);
       });
@@ -97,7 +97,7 @@ export default function FavoritosPage() {
         if (Array.isArray(data?.items)) setTalents(data.items);
         setHasMoreTalents(Boolean(data?.hasMore));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (mounted) setTalentsLoading(false);
       });
@@ -180,11 +180,10 @@ export default function FavoritosPage() {
           <button
             key={tab.key}
             onClick={() => setActive(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] border-b-2 -mb-px transition-all ${
-              active === tab.key
-                ? "border-coral text-ink"
-                : "border-transparent text-ink/40 hover:text-ink"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] border-b-2 -mb-px transition-all ${active === tab.key
+              ? "border-coral text-ink"
+              : "border-transparent text-ink/40 hover:text-ink"
+              }`}
           >
             {tab.label}
             <span className={`text-[9px] ${active === tab.key ? "text-coral" : "text-ink/30"}`}>
@@ -203,7 +202,7 @@ export default function FavoritosPage() {
               <Bookmark size={14} className="text-coral shrink-0 mt-0.5" />
               <div>
                 <div className="font-display font-semibold text-base">
-                  Não foi possível carregar notícias reais agora.
+                  Não foi possível carregar notícias agora.
                 </div>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink/40">
                   Tenta novamente quando as fontes externas responderem.
@@ -267,7 +266,7 @@ export default function FavoritosPage() {
           ) : artists.length === 0 ? (
             <div className="border border-ink/10 p-5">
               <div className="font-display font-semibold text-base">
-                Não foi possível carregar artistas reais agora.
+                Não foi possível carregar artistas agora.
               </div>
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink/40">
                 A lista volta quando a fonte externa de música responder.
@@ -330,7 +329,7 @@ export default function FavoritosPage() {
           ) : talents.length === 0 ? (
             <div className="border border-ink/10 p-5">
               <div className="font-display font-semibold text-base">
-                Sem talentos reais ligados à fonte oficial.
+                Sem talentos ligados à fonte oficial.
               </div>
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink/40">
                 Quando a fonte for configurada, os perfis aparecem aqui.

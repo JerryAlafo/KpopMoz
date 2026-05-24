@@ -81,7 +81,7 @@ export function ArtistasClient({ initialArtists }: ArtistasClientProps) {
             href="/musicas"
             className="mt-8 inline-flex items-center gap-2 border border-ink px-5 py-3 font-mono text-xs uppercase tracking-[0.2em] hover:bg-ink hover:text-bone transition-colors"
           >
-            Ver músicas reais
+            Ver músicas
           </Link>
         </div>
       </section>
@@ -98,7 +98,7 @@ export function ArtistasClient({ initialArtists }: ArtistasClientProps) {
             <div className="py-20 text-center">
               <div className="font-display font-black text-6xl text-ink/10 mb-4">0</div>
               <p className="font-display font-bold text-2xl text-ink/50">
-                Não foi possível carregar artistas reais agora.
+                Não foi possível carregar artistas agora.
               </p>
               <p className="mt-3 font-mono text-sm text-ink/40 tracking-wide">
                 Tenta novamente quando a fonte externa responder.
@@ -152,7 +152,7 @@ export function ArtistasClient({ initialArtists }: ArtistasClientProps) {
                       </div>
                       <div className="pt-3 border-t border-bone/15">
                         <div className="text-[10px] tracking-[0.2em] uppercase text-bone/50 font-mono mb-1">
-                          Top tracks reais
+                          Top tracks
                         </div>
                         <div className="text-xs text-bone/80 line-clamp-1">
                           {artist.topTracks.length > 0

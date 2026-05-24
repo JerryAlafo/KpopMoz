@@ -202,7 +202,7 @@ export default function PesquisaPage() {
         if (Array.isArray(talentsData?.items)) setTalents(talentsData.items);
         setHasMoreDynamic(Boolean(newsData?.hasMore || artistsData?.hasMore || musicData?.hasMore || talentsData?.hasMore));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (mounted) setLoading(false);
       });
@@ -334,7 +334,7 @@ export default function PesquisaPage() {
             {loading && (
               <div className="mb-8 border border-ink/10 p-4">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/40 mb-3">
-                  A carregar notícias, artistas, músicas e talentos reais...
+                  A carregar notícias, artistas, músicas e talentos...
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[0, 1, 2].map((item) => (

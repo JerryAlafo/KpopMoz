@@ -28,7 +28,7 @@ export default function ContaDashboard() {
       .then((data) => {
         if (mounted && Array.isArray(data?.items)) setLatestNews(data.items);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (mounted) setNewsLoading(false);
       });
@@ -44,7 +44,7 @@ export default function ContaDashboard() {
 
   const stats = [
     { label: "Eventos inscritos", value: "3", icon: Calendar, href: "/conta/eventos" },
-    { label: "Notícias reais", value: newsLoading ? "..." : String(latestNews.length), icon: Newspaper, href: "/conta/favoritos" },
+    { label: "Notícias", value: newsLoading ? "..." : String(latestNews.length), icon: Newspaper, href: "/conta/favoritos" },
     { label: "Fandoms seguidos", value: String(user.fandoms.length), icon: Zap, href: "/conta/perfil" },
     { label: "Notificações", value: "2", icon: Bell, href: "#" },
   ];
@@ -147,7 +147,7 @@ export default function ContaDashboard() {
           ) : latestNews.length === 0 ? (
             <div className="sm:col-span-2 border border-ink/10 p-5">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                Não foi possível carregar notícias reais agora.
+                Não foi possível carregar notícias agora.
               </div>
             </div>
           ) : latestNews.map((item) => (

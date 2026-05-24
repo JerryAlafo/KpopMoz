@@ -101,7 +101,7 @@ export default function TalentosPage() {
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-4">
             <span className="inline-block w-6 h-px bg-coral" />
-            <span>Secção 04 / Talentos reais</span>
+            <span>Secção 04 / Talentos</span>
           </div>
           <h1
             className="font-display font-bold leading-[0.92] tracking-tight"
@@ -112,19 +112,18 @@ export default function TalentosPage() {
             <span className="italic text-coral">no nosso</span> terreno.
           </h1>
           <p className="mt-6 max-w-2xl text-base sm:text-lg text-ink/70 leading-relaxed">
-            Perfis reais vindos de uma API pública. A lista começa curta e cresce
-            apenas quando clicas em ver mais.
+            Bailarinos, cantores, beatmakers e criadores moçambicanos que vivem
+            o K-POP todos os dias. Clica em ver mais para descobrir novos perfis.
           </p>
           <div className="mt-10 flex flex-wrap gap-2">
             {specialties.map((specialty) => (
               <button
                 key={specialty}
                 onClick={() => setActive(specialty)}
-                className={`px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] border transition-colors ${
-                  active === specialty
-                    ? "bg-ink text-bone border-ink"
-                    : "border-ink/30 hover:border-ink hover:bg-ink hover:text-bone"
-                }`}
+                className={`px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] border transition-colors ${active === specialty
+                  ? "bg-ink text-bone border-ink"
+                  : "border-ink/30 hover:border-ink hover:bg-ink hover:text-bone"
+                  }`}
               >
                 {specialty}
               </button>
@@ -141,10 +140,10 @@ export default function TalentosPage() {
             <div className="py-20 text-center">
               <div className="font-display font-black text-6xl text-ink/10 mb-4">0</div>
               <p className="font-display font-bold text-2xl text-ink/50">
-                Sem talentos reais para mostrar agora.
+                Sem talentos para mostrar agora.
               </p>
               <p className="mt-3 max-w-xl mx-auto font-mono text-sm text-ink/40 tracking-wide">
-                Tenta outra especialidade ou carrega mais resultados da API.
+                Tenta outra especialidade ou explora outros perfis.
               </p>
               {hasMore && (
                 <button
@@ -246,13 +245,10 @@ export default function TalentosPage() {
                 <br /> ligado ao K-POP?
               </h2>
               <p className="mt-6 text-base sm:text-lg text-bone/70 max-w-lg leading-relaxed">
-                A submissão deve alimentar uma fonte real para aparecer publicamente
-                sem dados mockados.
+                Envia o teu perfil e a nossa equipa analisa. Se aprovado, ficas
+                visível para toda a comunidade.
               </p>
-              <button
-                className="btn-brutal mt-8"
-                style={{ background: "#ff3d68", borderColor: "#ff3d68", color: "#0a0a0a" }}
-              >
+              <button className="btn-brutal mt-8">
                 Submeter perfil
                 <ArrowUpRight size={14} />
               </button>

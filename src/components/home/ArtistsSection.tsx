@@ -30,7 +30,7 @@ export async function ArtistsSection() {
         {featured.length === 0 ? (
           <div className="mt-10 lg:mt-16 border border-ink/15 bg-bone/40 p-6 lg:p-8">
             <div className="font-display font-bold text-2xl">
-              Não foi possível carregar artistas reais agora.
+              Não foi possível carregar artistas agora.
             </div>
             <p className="mt-2 max-w-xl text-sm text-ink/65 leading-relaxed">
               A secção volta a aparecer assim que a fonte externa de música responder.

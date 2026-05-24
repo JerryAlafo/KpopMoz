@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 
 const linkColumns = [
@@ -80,10 +81,8 @@ export function Footer() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-20">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10">
           <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="relative w-12 h-12 bg-coral flex items-center justify-center">
-                <span className="hangul-deco text-ink text-2xl leading-none">K</span>
-              </div>
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
+              <Image src="/favicon.png" alt="KPOP.MZ" width={48} height={48} className="w-12 h-12 object-contain" />
               <div className="leading-none">
                 <div className="font-display text-2xl font-bold">
                   KPOP<span className="text-coral">.</span>MZ

@@ -23,10 +23,10 @@ const config: Config = {
           200: "#ebe4d6",
         },
         coral: {
-          DEFAULT: "#ff3d68",
-          400: "#ff5a82",
-          500: "#ff3d68",
-          600: "#e6244f",
+          DEFAULT: "#7B65C8",
+          400: "#9580D6",
+          500: "#7B65C8",
+          600: "#6450B0",
         },
         sunny: {
           DEFAULT: "#ffd23f",

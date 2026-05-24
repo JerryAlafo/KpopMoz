@@ -64,7 +64,7 @@ export function MusicasClient({ initialSongs }: MusicasClientProps) {
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 relative">
           <div className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-4">
             <span className="inline-block w-6 h-px bg-coral" />
-            <span>Catálogo real / Músicas</span>
+            <span>Catálogo / Músicas</span>
           </div>
           <h1
             className="font-display font-bold leading-[0.92] tracking-tight"
@@ -72,11 +72,10 @@ export function MusicasClient({ initialSongs }: MusicasClientProps) {
           >
             Faixas K-POP
             <br />
-            <span className="italic text-coral">em tempo real.</span>
+            <span className="italic text-coral">sempre actualizadas.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-base sm:text-lg text-bone/70 leading-relaxed">
-            Músicas, capas e previews carregados de uma fonte pública externa. Sem
-            catálogo mockado.
+            Descobre faixas, álbuns e comebacks dos teus artistas favoritos.
           </p>
         </div>
       </section>
@@ -89,7 +88,7 @@ export function MusicasClient({ initialSongs }: MusicasClientProps) {
               style={songVisualStyle(featured)}
             >
               <div className="absolute top-4 left-4 bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5">
-                Destaque real
+                Destaque
               </div>
             </div>
             <div>
@@ -138,7 +137,7 @@ export function MusicasClient({ initialSongs }: MusicasClientProps) {
             <div className="py-20 text-center">
               <div className="font-display font-black text-6xl text-ink/10 mb-4">0</div>
               <p className="font-display font-bold text-2xl text-ink/50">
-                Não foi possível carregar músicas reais agora.
+                Não foi possível carregar músicas agora.
               </p>
               <p className="mt-3 font-mono text-sm text-ink/40 tracking-wide">
                 Tenta novamente quando a fonte externa responder.

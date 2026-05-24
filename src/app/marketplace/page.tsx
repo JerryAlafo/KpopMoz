@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { marketItems } from "@/data/market";
-import { MapPin, Filter, ArrowUpRight } from "lucide-react";
+import { MapPin, Filter } from "lucide-react";
 import type { MarketItem } from "@/types";
 
 type Category = MarketItem["category"] | "Tudo";
@@ -142,7 +142,7 @@ export default function MarketplacePage() {
         </div>
       </section>
 
-      {/* Sell with us CTA */}
+      {/* Info CTA */}
       <section className="py-16 lg:py-20 bg-ink text-bone grain">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 items-center">
@@ -153,16 +153,13 @@ export default function MarketplacePage() {
             </h2>
             <div>
               <p className="text-base sm:text-lg text-bone/70 leading-relaxed">
-                Sem comissão durante os primeiros 3 meses. Apenas verificamos
-                vendedores para manter a confiança da comunidade.
+                Para listar um produto no marketplace, contacta a administração da
+                comunidade. Verificamos todos os vendedores para manter a confiança
+                da comunidade.
               </p>
-              <button
-                className="btn-brutal mt-6"
-                style={{ background: "#ff3d68", borderColor: "#ff3d68", color: "#0a0a0a" }}
-              >
-                Tornar-me vendedor
-                <ArrowUpRight size={14} />
-              </button>
+              <p className="mt-4 font-mono text-[10px] tracking-[0.2em] uppercase text-bone/40">
+                Contacto · kpopmozambique@gmail.com
+              </p>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
@@ -40,10 +41,8 @@ export default function EntrarPage() {
         >
           로그인
         </div>
-        {/* <Link href="/" className="flex items-center gap-2 relative z-10">
-          <div className="relative w-10 h-10 bg-coral flex items-center justify-center">
-            <span className="hangul-deco text-ink text-xl leading-none">K</span>
-          </div>
+        <Link href="/" className="flex items-center gap-2.5 relative z-10">
+          <Image src="/favicon.png" alt="KPOP.MZ" width={40} height={40} className="w-10 h-10 object-contain" />
           <div className="leading-none">
             <div className="font-display text-lg font-bold">
               KPOP<span className="text-coral">.</span>MZ
@@ -52,7 +51,7 @@ export default function EntrarPage() {
               COMUNIDADE OFICIAL
             </div>
           </div>
-        </Link> */}
+        </Link>
 
         <div className="relative z-10">
           <h1 className="font-display font-bold leading-[0.92] tracking-tight"
@@ -88,11 +87,8 @@ export default function EntrarPage() {
       <div className="flex items-center justify-center px-6 py-24 lg:py-16 bg-bone">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <Link href="/" className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="relative w-9 h-9 bg-ink flex items-center justify-center">
-              <span className="hangul-deco text-bone text-lg leading-none">K</span>
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-coral" />
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 mb-10 lg:hidden">
+            <Image src="/favicon.png" alt="KPOP.MZ" width={36} height={36} className="w-9 h-9 object-contain" />
             <div className="font-display text-base font-bold">
               KPOP<span className="text-coral">.</span>MZ
             </div>
@@ -172,9 +168,6 @@ export default function EntrarPage() {
             </p>
           </div>
 
-          <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink/30 text-center mt-8">
-            Para demonstração, usa qualquer email + password
-          </p>
         </div>
       </div>
     </div>

@@ -30,7 +30,7 @@ export async function generateMetadata({
 
   return {
     title: `${artist.name} — KPOP.MZ`,
-    description: `Faixas reais de ${artist.name} carregadas a partir de fonte musical externa.`,
+    description: `Faixas de ${artist.name} carregadas a partir de fonte musical externa.`,
   };
 }
 
@@ -133,7 +133,7 @@ export default async function ArtistPage({
               <div>
                 <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-6">
                   <span className="inline-block w-6 h-px bg-coral" />
-                  <span>Top tracks reais</span>
+                  <span>Top tracks</span>
                 </div>
                 <div className="space-y-2">
                   {artist.topTracks.length === 0 ? (

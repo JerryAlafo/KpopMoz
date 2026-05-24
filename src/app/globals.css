@@ -5,7 +5,7 @@
 :root {
   --background: #f5f1ea;
   --foreground: #0a0a0a;
-  --accent: #ff3d68;
+  --accent: #7B65C8;
 }
 
 * {
@@ -21,7 +21,7 @@ body {
 }
 
 ::selection {
-  background: #ff3d68;
+  background: #7B65C8;
   color: #f5f1ea;
 }
 
@@ -66,7 +66,7 @@ body {
   background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ff3d68;
+  background: #7B65C8;
   border-radius: 0;
 }
 
@@ -112,7 +112,7 @@ body {
 .live-dot {
   width: 8px;
   height: 8px;
-  background: #ff3d68;
+  background: #7B65C8;
   border-radius: 50%;
   animation: livePulse 1.4s ease-in-out infinite;
 }
@@ -144,8 +144,8 @@ body {
   border: 1px solid #0a0a0a;
 }
 .btn-brutal:hover {
-  background: #ff3d68;
-  border-color: #ff3d68;
+  background: #7B65C8;
+  border-color: #7B65C8;
   transform: translate(-2px, -2px);
   box-shadow: 4px 4px 0 #0a0a0a;
 }
@@ -156,7 +156,7 @@ body {
 .btn-brutal--invert:hover {
   background: #0a0a0a;
   color: #f5f1ea;
-  box-shadow: 4px 4px 0 #ff3d68;
+  box-shadow: 4px 4px 0 #7B65C8;
 }
 
 /* Hide scrollbar utility */

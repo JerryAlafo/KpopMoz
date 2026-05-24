@@ -27,17 +27,17 @@ export async function TalentsSection() {
           number="03"
           eyebrow="Spotlight"
           title="Talentos moçambicanos a brilhar"
-          description="Perfis reais carregados a partir de API pública, sem ficheiro local ou dados mockados."
+          description="Bailarinos, cantores, produtores e criadores que fazem o K-POP crescer em Moçambique."
           link={{ href: "/talentos", label: "Ver todos os talentos" }}
         />
 
         {talents.length === 0 ? (
           <div className="mt-10 lg:mt-16 border border-ink/15 p-6 lg:p-8">
             <div className="font-display font-bold text-2xl">
-              Não foi possível carregar talentos reais agora.
+              Não foi possível carregar talentos agora.
             </div>
             <p className="mt-2 max-w-xl text-sm text-ink/65 leading-relaxed">
-              A secção volta assim que a API pública responder.
+              Tenta novamente em breve.
             </p>
             <Link
               href="/talentos"

@@ -7,21 +7,21 @@ import { useAuth } from "@/contexts/auth";
 import {
   Users, FileText, Flag, Megaphone, TrendingUp, Calendar,
   ShieldCheck, Trash2, Check, X, Search, ChevronDown,
-  AlertTriangle, Eye, Newspaper, Music, Plus, Send,
+  AlertTriangle, Eye, Newspaper, Music, Plus, Send, ShoppingBag,
 } from "lucide-react";
 
 /* ── Mock data ──────────────────────────────────────── */
 const STATS = [
-  { label: "Membros",          value: "8 247",  delta: "+34 esta semana",  icon: Users,       color: "text-blue-600"   },
-  { label: "Posts hoje",       value: "127",    delta: "+18% vs ontem",    icon: FileText,    color: "text-emerald-600" },
-  { label: "Denúncias activas",value: "4",      delta: "2 novas hoje",     icon: Flag,        color: "text-coral"      },
-  { label: "Eventos activos",  value: "6",      delta: "3 esta semana",    icon: Calendar,    color: "text-amber-600"  },
+  { label: "Membros", value: "8 247", delta: "+34 esta semana", icon: Users, color: "text-blue-600" },
+  { label: "Posts hoje", value: "127", delta: "+18% vs ontem", icon: FileText, color: "text-emerald-600" },
+  { label: "Denúncias activas", value: "4", delta: "2 novas hoje", icon: Flag, color: "text-coral" },
+  { label: "Eventos activos", value: "6", delta: "3 esta semana", icon: Calendar, color: "text-amber-600" },
 ];
 
 const ACTIVITY = [
-  { day: "Seg", posts: 89  },
+  { day: "Seg", posts: 89 },
   { day: "Ter", posts: 104 },
-  { day: "Qua", posts: 78  },
+  { day: "Qua", posts: 78 },
   { day: "Qui", posts: 143 },
   { day: "Sex", posts: 167 },
   { day: "Sáb", posts: 201 },
@@ -30,16 +30,16 @@ const ACTIVITY = [
 const maxPosts = Math.max(...ACTIVITY.map((a) => a.posts));
 
 const MOCK_MEMBERS = [
-  { id: "u1", name: "Yara Mucavele",  username: "@yara.dnc",    role: "mod",  posts: 312, joined: "Jan 2024", online: true  },
-  { id: "u2", name: "Eduardo Nhaca",  username: "@eddu.edit",   role: "member", posts: 198, joined: "Mar 2024", online: true  },
-  { id: "u3", name: "Tânia Cossa",    username: "@tania.draws", role: "member", posts: 87,  joined: "Jun 2024", online: false },
-  { id: "u4", name: "Carlos Sitoe",   username: "@c.sitoe",     role: "member", posts: 45,  joined: "Ago 2024", online: false },
-  { id: "u5", name: "Fátima Nhacolo", username: "@fat.km",      role: "member", posts: 231, joined: "Fev 2024", online: true  },
-  { id: "u6", name: "Grupo CRWN",     username: "@crwn.crew",   role: "mod",  posts: 156, joined: "Mai 2024", online: false },
+  { id: "u1", name: "Yara Mucavele", username: "@yara.dnc", role: "mod", posts: 312, joined: "Jan 2024", online: true },
+  { id: "u2", name: "Eduardo Nhaca", username: "@eddu.edit", role: "member", posts: 198, joined: "Mar 2024", online: true },
+  { id: "u3", name: "Tânia Cossa", username: "@tania.draws", role: "member", posts: 87, joined: "Jun 2024", online: false },
+  { id: "u4", name: "Carlos Sitoe", username: "@c.sitoe", role: "member", posts: 45, joined: "Ago 2024", online: false },
+  { id: "u5", name: "Fátima Nhacolo", username: "@fat.km", role: "member", posts: 231, joined: "Fev 2024", online: true },
+  { id: "u6", name: "Grupo CRWN", username: "@crwn.crew", role: "mod", posts: 156, joined: "Mai 2024", online: false },
 ];
 
 const MOCK_REPORTS = [
-  { id: "r1", reason: "Spam", post: "Compra seguidores reais por 500MZN...", author: "@unknown99", reporter: "@yara.dnc", ago: "5 min" },
+  { id: "r1", reason: "Spam", post: "Compra seguidores por 500MZN...", author: "@unknown99", reporter: "@yara.dnc", ago: "5 min" },
   { id: "r2", reason: "Assédio", post: "Comentário ofensivo num post de fanart...", author: "@troll_acc", reporter: "@tania.draws", ago: "2h" },
   { id: "r3", reason: "Conteúdo explícito", post: "Imagem inapropriada partilhada no feed...", author: "@acc123", reporter: "@eddu.edit", ago: "5h" },
   { id: "r4", reason: "Outro", post: "Informação falsa sobre concert BTS em Maputo...", author: "@fake_news", reporter: "@fat.km", ago: "1d" },
@@ -56,15 +56,20 @@ const INITIAL_ANNOUNCEMENTS = [
   { id: "a2", title: "Actualização das regras da comunidade", audience: "Geral", status: "Publicado", pinned: false },
 ];
 
+const INITIAL_PRODUCTS = [
+  { id: "p1", title: "Photocard Jungkook — Proof", category: "Photocards", price: "350", condition: "Novo", seller: "@yara.dnc", city: "Maputo" },
+  { id: "p2", title: "Lightstick BLACKPINK 2nd Gen", category: "Lightsticks", price: "2200", condition: "Usado", seller: "@eddu.edit", city: "Beira" },
+];
+
 const REASON_COLOR: Record<string, string> = {
-  "Spam":               "text-amber-700 bg-amber-50",
-  "Assédio":            "text-coral bg-coral/10",
+  "Spam": "text-amber-700 bg-amber-50",
+  "Assédio": "text-coral bg-coral/10",
   "Conteúdo explícito": "text-red-700 bg-red-50",
-  "Outro":              "text-ink/50 bg-ink/5",
+  "Outro": "text-ink/50 bg-ink/5",
 };
 
 type Tab = "overview" | "membros" | "denuncias" | "conteudo" | "criar";
-type CreateForm = "evento" | "anuncio";
+type CreateForm = "evento" | "anuncio" | "produto";
 
 /* ── Helper components ─────────────────────────────── */
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -90,24 +95,33 @@ export default function AdminPage() {
   const [published, setPublished] = useState(false);
   const [events, setEvents] = useState(INITIAL_EVENTS);
   const [announcements, setAnnouncements] = useState(INITIAL_ANNOUNCEMENTS);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
 
   // Evento form state
-  const [evTitle, setEvTitle]       = useState("");
-  const [evDesc, setEvDesc]         = useState("");
-  const [evDate, setEvDate]         = useState("");
-  const [evStart, setEvStart]       = useState("");
-  const [evEnd, setEvEnd]           = useState("");
+  const [evTitle, setEvTitle] = useState("");
+  const [evDesc, setEvDesc] = useState("");
+  const [evDate, setEvDate] = useState("");
+  const [evStart, setEvStart] = useState("");
+  const [evEnd, setEvEnd] = useState("");
   const [evLocation, setEvLocation] = useState("");
-  const [evCity, setEvCity]         = useState("Maputo");
-  const [evFree, setEvFree]         = useState(true);
-  const [evPrice, setEvPrice]       = useState("");
+  const [evCity, setEvCity] = useState("Maputo");
+  const [evFree, setEvFree] = useState(true);
+  const [evPrice, setEvPrice] = useState("");
   const [evCapacity, setEvCapacity] = useState("");
 
   // Anúncio form state
-  const [anTitle, setAnTitle]   = useState("");
-  const [anBody, setAnBody]     = useState("");
+  const [anTitle, setAnTitle] = useState("");
+  const [anBody, setAnBody] = useState("");
   const [anFandom, setAnFandom] = useState("Geral");
-  const [anPin, setAnPin]       = useState(false);
+  const [anPin, setAnPin] = useState(false);
+
+  // Produto form state
+  const [prTitle, setPrTitle] = useState("");
+  const [prPrice, setPrPrice] = useState("");
+  const [prCategory, setPrCategory] = useState("Photocards");
+  const [prCondition, setPrCondition] = useState("Novo");
+  const [prSeller, setPrSeller] = useState("");
+  const [prCity, setPrCity] = useState("Maputo");
 
   function openCreateForm(form: CreateForm) {
     setCreateForm(form);
@@ -140,6 +154,15 @@ export default function AdminPage() {
       return;
     }
 
+    if (createForm === "produto") {
+      setPrTitle("");
+      setPrPrice("");
+      setPrCategory("Photocards");
+      setPrCondition("Novo");
+      setPrSeller("");
+      setPrCity("Maputo");
+      return;
+    }
   }
 
   function formatEventDate(value: string) {
@@ -180,6 +203,21 @@ export default function AdminPage() {
       ]);
     }
 
+    if (createForm === "produto") {
+      setProducts((items) => [
+        {
+          id: `product-${Date.now()}`,
+          title: prTitle.trim(),
+          category: prCategory,
+          price: prPrice,
+          condition: prCondition,
+          seller: prSeller.trim(),
+          city: prCity,
+        },
+        ...items,
+      ]);
+    }
+
     setPublished(true);
     clearCurrentForm({ keepStatus: true });
     setTimeout(() => setPublished(false), 3000);
@@ -209,11 +247,11 @@ export default function AdminPage() {
   const activeReports = MOCK_REPORTS.filter((r) => !dismissed.includes(r.id));
 
   const tabs: { key: Tab; label: string; badge?: number }[] = [
-    { key: "overview",  label: "Visão geral" },
-    { key: "membros",   label: "Membros",    badge: MOCK_MEMBERS.length },
-    { key: "denuncias", label: "Denúncias",  badge: activeReports.length },
-    { key: "conteudo",  label: "Conteúdo"   },
-    { key: "criar",     label: "Criar"      },
+    { key: "overview", label: "Visão geral" },
+    { key: "membros", label: "Membros", badge: MOCK_MEMBERS.length },
+    { key: "denuncias", label: "Denúncias", badge: activeReports.length },
+    { key: "conteudo", label: "Conteúdo" },
+    { key: "criar", label: "Criar" },
   ];
 
   return (
@@ -240,9 +278,8 @@ export default function AdminPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`shrink-0 flex items-center gap-2 px-4 sm:px-5 py-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.15em] border-b-2 -mb-px transition-all ${
-              tab === t.key ? "border-coral text-ink" : "border-transparent text-ink/40 hover:text-ink"
-            }`}
+            className={`shrink-0 flex items-center gap-2 px-4 sm:px-5 py-3 font-mono text-[10px] sm:text-xs uppercase tracking-[0.15em] border-b-2 -mb-px transition-all ${tab === t.key ? "border-coral text-ink" : "border-transparent text-ink/40 hover:text-ink"
+              }`}
           >
             {t.label}
             {t.badge !== undefined && (
@@ -456,15 +493,15 @@ export default function AdminPage() {
           {/* Selector de tipo */}
           <div className="flex gap-2 flex-wrap">
             {([
-              { key: "evento",  label: "Evento",   icon: Calendar  },
-              { key: "anuncio", label: "Anúncio",  icon: Megaphone },
+              { key: "evento", label: "Evento", icon: Calendar },
+              { key: "anuncio", label: "Anúncio", icon: Megaphone },
+              { key: "produto", label: "Produto", icon: ShoppingBag },
             ] as { key: CreateForm; label: string; icon: ElementType }[]).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => { setCreateForm(key); setPublished(false); }}
-                className={`flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-[0.15em] border transition-colors ${
-                  createForm === key ? "bg-ink text-bone border-ink" : "border-ink/20 text-ink/50 hover:border-ink hover:text-ink"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2.5 font-mono text-xs uppercase tracking-[0.15em] border transition-colors ${createForm === key ? "bg-ink text-bone border-ink" : "border-ink/20 text-ink/50 hover:border-ink hover:text-ink"
+                  }`}
               >
                 <Icon size={13} strokeWidth={1.75} />
                 {label}
@@ -510,7 +547,7 @@ export default function AdminPage() {
                     </Field>
                     <Field label="Cidade *">
                       <select value={evCity} onChange={e => setEvCity(e.target.value)} className={inputCls}>
-                        {["Maputo","Matola","Beira","Nampula","Online"].map(c => <option key={c}>{c}</option>)}
+                        {["Maputo", "Matola", "Beira", "Nampula", "Online"].map(c => <option key={c}>{c}</option>)}
                       </select>
                     </Field>
                   </div>
@@ -561,7 +598,7 @@ export default function AdminPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Fandom / Audiência">
                       <select value={anFandom} onChange={e => setAnFandom(e.target.value)} className={inputCls}>
-                        {["Geral","ARMY","BLINK","ONCE","STAY","ORBIT","ELF","EXO-L"].map(f => <option key={f}>{f}</option>)}
+                        {["Geral", "ARMY", "BLINK", "ONCE", "STAY", "ORBIT", "ELF", "EXO-L"].map(f => <option key={f}>{f}</option>)}
                       </select>
                     </Field>
                     <Field label="Opções">
@@ -577,6 +614,49 @@ export default function AdminPage() {
               </>
             )}
 
+            {/* ── Formulário Produto ── */}
+            {createForm === "produto" && (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <ShoppingBag size={13} className="text-coral" />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Novo Produto — Marketplace</span>
+                </div>
+                <div className="space-y-3">
+                  <Field label="Título do produto *">
+                    <input required value={prTitle} onChange={e => setPrTitle(e.target.value)}
+                      placeholder="ex: Photocard Jungkook — Proof" className={inputCls} />
+                  </Field>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <Field label="Preço (MZN) *">
+                      <input required type="number" min="1" value={prPrice} onChange={e => setPrPrice(e.target.value)}
+                        placeholder="ex: 500" className={inputCls} />
+                    </Field>
+                    <Field label="Categoria *">
+                      <select value={prCategory} onChange={e => setPrCategory(e.target.value)} className={inputCls}>
+                        {["Photocards", "Lightsticks", "Álbuns", "Posters", "Roupa", "Acessórios"].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Condição *">
+                      <select value={prCondition} onChange={e => setPrCondition(e.target.value)} className={inputCls}>
+                        {["Novo", "Usado", "Personalizado"].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Field label="Vendedor (username) *">
+                      <input required value={prSeller} onChange={e => setPrSeller(e.target.value)}
+                        placeholder="ex: @yara.dnc" className={inputCls} />
+                    </Field>
+                    <Field label="Cidade *">
+                      <select value={prCity} onChange={e => setPrCity(e.target.value)} className={inputCls}>
+                        {["Maputo", "Matola", "Beira", "Nampula", "Online"].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </Field>
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Acções */}
             <div className="flex items-center justify-between pt-2 border-t border-ink/10">
               <button type="button" onClick={() => clearCurrentForm()}
@@ -585,11 +665,10 @@ export default function AdminPage() {
               </button>
               <button
                 type="submit"
-                className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-[0.15em] transition-all ${
-                  published
-                    ? "bg-emerald-500 text-bone border border-emerald-500"
-                    : "bg-ink text-bone hover:bg-ink/80 border border-ink"
-                }`}
+                className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-[0.15em] transition-all ${published
+                  ? "bg-emerald-500 text-bone border border-emerald-500"
+                  : "bg-ink text-bone hover:bg-ink/80 border border-ink"
+                  }`}
               >
                 {published ? (
                   <><Check size={13} strokeWidth={2.5} /> Publicado!</>
@@ -645,18 +724,18 @@ export default function AdminPage() {
             <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-ink/10">
               <div className="flex items-center gap-2">
                 <Newspaper size={13} className="text-coral" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Notícias reais</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Notícias</span>
               </div>
               <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-ink/35">
-                Automático
+                Curadoria editorial
               </span>
             </div>
             <div className="px-4 py-4">
               <div className="font-display font-semibold text-sm">
-                A secção de notícias usa apenas feeds externos reais.
+                As notícias são geridas pela equipa editorial da KM.
               </div>
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink/35">
-                Soompi, Koreaboo e Google News alimentam a página pública; o admin não cria notícias locais.
+                Para publicar ou remover uma notícia, contacta a equipa editorial directamente.
               </p>
             </div>
           </div>
@@ -687,6 +766,43 @@ export default function AdminPage() {
                   </div>
                   <button className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink border border-ink/10 hover:border-ink px-2 py-1 transition-colors">
                     Editar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Marketplace */}
+          <div className="border border-ink/10">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-ink/10">
+              <div className="flex items-center gap-2">
+                <ShoppingBag size={13} className="text-coral" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Marketplace</span>
+              </div>
+              <button
+                onClick={() => openCreateForm("produto")}
+                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 bg-ink text-bone hover:bg-ink/80 transition-colors"
+              >
+                <Plus size={11} strokeWidth={2.25} /> Novo produto
+              </button>
+            </div>
+            {products.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-ink/5 last:border-0 hover:bg-ink/2 transition-colors">
+                <div className="min-w-0">
+                  <div className="font-mono text-xs text-ink/70 truncate">{p.title}</div>
+                  <div className="font-mono text-[9px] text-ink/30 mt-0.5">
+                    {p.category} · {p.condition} · {p.price} MZN · {p.seller} · {p.city}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink border border-ink/10 hover:border-ink px-2 py-1 transition-colors">
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => setProducts((items) => items.filter((x) => x.id !== p.id))}
+                    className="font-mono text-[9px] uppercase tracking-[0.1em] text-coral/60 hover:text-coral border border-coral/10 hover:border-coral px-2 py-1 transition-colors"
+                  >
+                    <Trash2 size={10} />
                   </button>
                 </div>
               </div>
