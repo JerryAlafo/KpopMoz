@@ -29,7 +29,6 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
       }, 300);
       return () => clearTimeout(timer);
     }
-    // Novo utilizador Google ainda não completou o onboarding
     if (user !== null && user.onboardingComplete === false) {
       router.replace("/onboarding");
     }
@@ -45,22 +44,32 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-bone pt-16 lg:pt-20">
+    <div className="min-h-screen bg-bone">
 
       {/* ── Main grid ────────────────────────────────────── */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-12 pb-24 lg:pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 lg:gap-10">
 
           {/* Desktop sidebar */}
-          <aside className="hidden lg:flex flex-col gap-3 self-start sticky top-24">
+          <aside className="hidden lg:flex flex-col gap-3 self-start sticky top-8">
             <div className="bg-ink text-bone p-5 grain">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-coral flex items-center justify-center font-display font-black text-lg text-ink">
-                  {initials}
-                </div>
-                <div>
-                  <div className="font-display font-bold text-lg leading-tight">{user.name}</div>
-                  <div className="font-mono text-[10px] tracking-[0.2em] text-bone/50">{user.username}</div>
+                {/* Avatar: foto real ou iniciais */}
+                {user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.image}
+                    alt={user.name}
+                    className="w-12 h-12 object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-coral flex items-center justify-center font-display font-black text-lg text-ink shrink-0">
+                    {initials}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="font-display font-bold text-lg leading-tight truncate">{user.name}</div>
+                  <div className="font-mono text-[10px] tracking-[0.2em] text-bone/50 truncate">{user.username}</div>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -140,14 +149,8 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
                 active ? "text-coral" : "text-ink/40 hover:text-ink"
               )}
             >
-              <Icon
-                size={20}
-                strokeWidth={active ? 2.25 : 1.75}
-                className={active ? "text-coral" : ""}
-              />
-              <span className="font-mono text-[8px] uppercase tracking-[0.1em]">
-                {label}
-              </span>
+              <Icon size={20} strokeWidth={active ? 2.25 : 1.75} className={active ? "text-coral" : ""} />
+              <span className="font-mono text-[8px] uppercase tracking-[0.1em]">{label}</span>
             </Link>
           );
         })}
@@ -159,14 +162,18 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
               pathname === "/conta/admin" ? "text-coral" : "text-ink/40 hover:text-ink"
             )}
           >
-            <Shield
-              size={20}
-              strokeWidth={pathname === "/conta/admin" ? 2.25 : 1.75}
-              className={pathname === "/conta/admin" ? "text-coral" : ""}
-            />
+            <Shield size={20} strokeWidth={pathname === "/conta/admin" ? 2.25 : 1.75} className={pathname === "/conta/admin" ? "text-coral" : ""} />
             <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Admin</span>
           </Link>
         )}
+        {/* Logout no mobile */}
+        <button
+          onClick={handleLogout}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-ink/40 hover:text-coral transition-colors"
+        >
+          <LogOut size={20} strokeWidth={1.75} />
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Sair</span>
+        </button>
       </nav>
 
     </div>

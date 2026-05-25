@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 
 const linkColumns = [
   {
@@ -40,44 +43,14 @@ const socials = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Não mostrar footer no feed, entrar e onboarding
+  const hidden = ["/conta/feed", "/entrar", "/onboarding"];
+  if (hidden.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
+
   return (
     <footer className="bg-ink text-bone relative overflow-hidden grain">
-      {/* Newsletter */}
-      <div className="border-b border-bone/10 overflow-hidden">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-16 items-end">
-            <div>
-              <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-bone/50 mb-4">
-                Junta-te ao newsletter
-              </div>
-              <h3 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight">
-                Recebe os <span className="text-coral">comebacks</span>, eventos e drops
-                semanais antes de todos.
-              </h3>
-            </div>
-            <form className="flex flex-col gap-3">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="email"
-                  placeholder="o.teu.email@dominio.mz"
-                  className="flex-1 bg-transparent border border-bone/30 px-4 py-3 font-mono text-sm placeholder:text-bone/40 focus:border-coral focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  className="bg-coral text-ink font-mono text-xs tracking-[0.2em] uppercase font-semibold px-6 py-3 hover:bg-bone transition-colors inline-flex items-center justify-center gap-2"
-                >
-                  Subscrever
-                  <ArrowUpRight size={14} />
-                </button>
-              </div>
-              <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-bone/40">
-                Sem spam · Apenas K-POP · 1 envio semanal
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-20">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10">
           <div className="col-span-2 lg:col-span-2">

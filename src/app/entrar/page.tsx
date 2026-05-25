@@ -43,7 +43,7 @@ export default function EntrarPage() {
     }
     setLoading(true);
     const res = await signIn("credentials", {
-      email, password, callbackUrl: "/conta", redirect: false,
+      email, password, callbackUrl: "/conta/feed", redirect: false,
     });
     setLoading(false);
     if (res?.error) {
@@ -169,7 +169,7 @@ export default function EntrarPage() {
 
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: "/conta" })}
+            onClick={() => signIn("google", { callbackUrl: "/conta/feed" })}
             className="w-full flex items-center justify-center gap-3 px-6 py-3.5 border border-ink/20 hover:border-ink font-mono text-sm uppercase tracking-[0.2em] text-ink/70 hover:text-ink transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>

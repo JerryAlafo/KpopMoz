@@ -138,8 +138,22 @@ CREATE TABLE IF NOT EXISTS feed_posts (
   published_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Se já tens o schema corrido, executa esta linha:
+-- Se já tens o schema corrido, executa estas migrações:
 -- ALTER TABLE feed_posts ADD COLUMN IF NOT EXISTS image_url TEXT;
+-- ALTER TABLE profiles ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN NOT NULL DEFAULT TRUE;
+-- CREATE TABLE IF NOT EXISTS post_comments (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), post_id UUID NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE, user_email TEXT NOT NULL, content TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+-- CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments(post_id);
+-- CREATE INDEX IF NOT EXISTS idx_post_comments_user ON post_comments(user_email);
+-- ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
+
+-- Comentários em posts do feed
+CREATE TABLE IF NOT EXISTS post_comments (
+  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id      UUID        NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
+  user_email   TEXT        NOT NULL,
+  content      TEXT        NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- Likes em posts do feed
 CREATE TABLE IF NOT EXISTS post_likes (
@@ -185,6 +199,8 @@ CREATE INDEX IF NOT EXISTS idx_follows_following     ON follows(following_email)
 CREATE INDEX IF NOT EXISTS idx_notifications_user    ON notifications(user_email, read);
 CREATE INDEX IF NOT EXISTS idx_event_reg_user        ON event_registrations(user_email);
 CREATE INDEX IF NOT EXISTS idx_event_reg_event       ON event_registrations(event_id);
+CREATE INDEX IF NOT EXISTS idx_post_comments_post    ON post_comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_comments_user    ON post_comments(user_email);
 
 -- ============================================================
 -- 3. ROW LEVEL SECURITY
@@ -207,6 +223,7 @@ ALTER TABLE reports             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_registrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE feed_posts          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_likes          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_comments       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE follows             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
 

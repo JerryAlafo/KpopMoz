@@ -59,16 +59,16 @@ export async function GET(req: Request) {
 
   // Passo 2: obter perfis dos autores (batch, sem join)
   const authorEmails = [...new Set((posts ?? []).map((p) => p.author_email))];
-  const profileMap: Record<string, { name: string; username: string; fandoms: string[] }> = {};
+  const profileMap: Record<string, { name: string; username: string; fandoms: string[]; avatar_url: string | null }> = {};
 
   if (authorEmails.length > 0) {
     const { data: profiles } = await db
       .from("profiles")
-      .select("email, name, username, fandoms")
+      .select("email, name, username, fandoms, avatar_url")
       .in("email", authorEmails);
 
     for (const p of profiles ?? []) {
-      profileMap[p.email] = { name: p.name, username: p.username, fandoms: p.fandoms };
+      profileMap[p.email] = { name: p.name, username: p.username, fandoms: p.fandoms, avatar_url: p.avatar_url ?? null };
     }
   }
 
@@ -90,11 +90,13 @@ export async function GET(req: Request) {
       id:          p.id,
       type:        p.type,
       author: {
-        name:     profile?.name     ?? "Utilizador",
-        username: profile?.username ?? "@utilizador",
-        initials: initials(profile?.name ?? "KM"),
-        avatarBg: FANDOM_BG[fandom] ?? "linear-gradient(135deg,#1c1c1c,#7B65C8)",
-        fandom:   fandom || undefined,
+        name:      profile?.name       ?? "Utilizador",
+        username:  profile?.username   ?? "@utilizador",
+        email:     p.author_email,
+        initials:  initials(profile?.name ?? "KM"),
+        avatarBg:  FANDOM_BG[fandom] ?? "linear-gradient(135deg,#1c1c1c,#7B65C8)",
+        avatarUrl: profile?.avatar_url ?? null,
+        fandom:    fandom || undefined,
       },
       publishedAt: p.published_at,
       content:     p.content || undefined,

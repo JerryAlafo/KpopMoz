@@ -34,7 +34,19 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { name, username, bio, city, fandoms } = await req.json();
+  const { name, username, bio, city, fandoms, avatar_url } = await req.json();
+
+  // Se for apenas update de avatar (só avatar_url enviado)
+  if (avatar_url !== undefined && !name && !username) {
+    const db = createAdminClient();
+    const { error } = await db
+      .from("profiles")
+      .update({ avatar_url })
+      .eq("email", session.user.email);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   if (!name?.trim() || !username?.trim()) {
     return NextResponse.json({ error: "Nome e username são obrigatórios" }, { status: 400 });
   }
@@ -53,15 +65,18 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Username já está em uso" }, { status: 409 });
   }
 
+  const updates: Record<string, unknown> = {
+    name:     name.trim(),
+    username: username.trim(),
+    bio:      bio?.trim() ?? "",
+    city:     city ?? "Maputo",
+    fandoms:  fandoms ?? [],
+  };
+  if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+
   const { error } = await db
     .from("profiles")
-    .update({
-      name:     name.trim(),
-      username: username.trim(),
-      bio:      bio?.trim() ?? "",
-      city:     city ?? "Maputo",
-      fandoms:  fandoms ?? [],
-    })
+    .update(updates)
     .eq("email", session.user.email);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -108,8 +108,10 @@ export interface FeedPost {
   author: {
     name: string;
     username: string;
+    email: string;
     initials: string;
     avatarBg: string;
+    avatarUrl?: string | null;
     fandom?: string;
   };
   publishedAt: string;
