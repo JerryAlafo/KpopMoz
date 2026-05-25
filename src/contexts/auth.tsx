@@ -11,6 +11,7 @@ export interface KMUser {
   bio: string;
   fandoms: string[];
   isAdmin?: boolean;
+  onboardingComplete?: boolean;
   image?: string | null;
 }
 
@@ -31,14 +32,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const user: KMUser | null = session?.user
     ? {
-        name:     session.user.name     ?? "",
-        username: session.user.username ?? "",
-        email:    session.user.email    ?? "",
-        city:     session.user.city     ?? "Maputo",
-        bio:      session.user.bio      ?? "",
-        fandoms:  session.user.fandoms  ?? [],
-        isAdmin:  session.user.isAdmin  ?? false,
-        image:    session.user.image,
+        name:               session.user.name               ?? "",
+        username:           session.user.username           ?? "",
+        email:              session.user.email              ?? "",
+        city:               session.user.city               ?? "Maputo",
+        bio:                session.user.bio                ?? "",
+        fandoms:            session.user.fandoms            ?? [],
+        isAdmin:            session.user.isAdmin            ?? false,
+        onboardingComplete: session.user.onboardingComplete ?? true,
+        image:              session.user.image,
       }
     : null;
 

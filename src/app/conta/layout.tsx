@@ -29,6 +29,10 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
       }, 300);
       return () => clearTimeout(timer);
     }
+    // Novo utilizador Google ainda não completou o onboarding
+    if (user !== null && user.onboardingComplete === false) {
+      router.replace("/onboarding");
+    }
   }, [user, router]);
 
   if (!user) return null;

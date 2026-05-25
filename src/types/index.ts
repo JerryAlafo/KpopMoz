@@ -102,6 +102,27 @@ export interface MarketItem {
   bg: string;
 }
 
+export interface FeedPost {
+  id: string;
+  type: "post" | "event" | "news" | "talent" | "milestone";
+  author: {
+    name: string;
+    username: string;
+    initials: string;
+    avatarBg: string;
+    fandom?: string;
+  };
+  publishedAt: string;
+  content?: string;
+  image?: { bg: string; alt: string };
+  link?: { href: string; label: string };
+  reactions: { emoji: string; count: number }[];
+  comments: number;
+  tags?: string[];
+  imageUrl?: string;
+  likedByMe?: boolean;
+}
+
 export interface LearnTopic {
   id: string;
   slug: string;

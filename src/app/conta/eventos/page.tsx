@@ -10,46 +10,6 @@ const monthMap: Record<string, string> = {
   "07": "JUL", "08": "AGO", "09": "SET", "10": "OUT", "11": "NOV", "12": "DEZ",
 };
 
-const pastEventsData = [
-  {
-    id: "p1",
-    slug: "random-dance-abril-maputo",
-    title: "Random Dance Play - Edição Abril",
-    date: "2026-04-13",
-    startTime: "15:00",
-    endTime: "18:00",
-    location: "Praça da Independência",
-    city: "Maputo",
-    free: true,
-    coverBg: "linear-gradient(135deg, #7B65C8 0%, #ffd23f 100%)",
-  },
-  {
-    id: "p2",
-    slug: "fan-meeting-maputo-stray-kids",
-    title: "Fan Meeting Stray Kids — Streaming Party",
-    date: "2026-03-22",
-    startTime: "20:00",
-    endTime: "23:30",
-    location: "Espaço KM",
-    city: "Maputo",
-    free: false,
-    price: 150,
-    coverBg: "linear-gradient(135deg, #0a0a0a 0%, #3a5cff 100%)",
-  },
-  {
-    id: "p3",
-    slug: "workshop-coreografia-fevereiro",
-    title: "Workshop de Coreografia — Nível Iniciante",
-    date: "2026-02-08",
-    startTime: "10:00",
-    endTime: "13:00",
-    location: "Centro Cultural Polana",
-    city: "Maputo",
-    free: false,
-    price: 200,
-    coverBg: "linear-gradient(135deg, #7af0c8 0%, #3a5cff 100%)",
-  },
-];
 
 function EventCard({
   title, slug, date, startTime, endTime, location, city, free, price, coverBg, past = false,
@@ -112,11 +72,17 @@ function EventCard({
 
 export default function MeusEventosPage() {
   const [upcomingRegistered, setUpcomingRegistered] = useState<EventItem[]>([]);
+  const [pastEvents, setPastEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
     fetch("/api/events", { cache: "no-store" })
       .then((r) => r.ok ? r.json() : [])
       .then((data) => { if (Array.isArray(data)) setUpcomingRegistered(data.slice(0, 3)); })
+      .catch(() => {});
+
+    fetch("/api/conta/eventos", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (Array.isArray(data)) setPastEvents(data); })
       .catch(() => {});
   }, []);
 
@@ -171,8 +137,23 @@ export default function MeusEventosPage() {
           Histórico
         </h2>
         <div className="space-y-3">
-          {pastEventsData.map((event) => (
-            <EventCard key={event.id} {...event} past />
+          {pastEvents.length === 0 ? (
+            <p className="font-mono text-xs text-ink/30 tracking-[0.15em] uppercase">Nenhum evento anterior.</p>
+          ) : pastEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              title={event.title}
+              slug={event.slug}
+              date={event.date}
+              startTime={event.startTime}
+              endTime={event.endTime}
+              location={event.location}
+              city={event.city}
+              free={event.free}
+              price={event.price}
+              coverBg={event.coverBg}
+              past
+            />
           ))}
         </div>
       </section>
