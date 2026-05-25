@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 function formatCount(n: number): string {
   if (n >= 1000) return `${Math.floor(n / 1000)} ${(n % 1000).toString().padStart(3, "0")}+`;
@@ -21,6 +21,7 @@ export default function EntrarPage() {
   const [members, setMembers] = useState("...");
   const [events, setEvents] = useState("...");
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     fetch("/api/stats", { cache: "no-store" })
@@ -33,6 +34,19 @@ export default function EntrarPage() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (session.user?.isBanned) {
+      router.replace("/banido");
+      return;
+    }
+    if (session.user?.onboardingComplete === false) {
+      router.replace("/onboarding");
+      return;
+    }
+    router.replace("/conta/feed");
+  }, [router, session, status]);
 
   async function handleLogin(e: { preventDefault(): void }) {
     e.preventDefault();

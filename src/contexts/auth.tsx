@@ -18,18 +18,22 @@ export interface KMUser {
 
 interface AuthCtx {
   user: KMUser | null;
+  loading: boolean;
+  authenticated: boolean;
   login: () => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthCtx>({
   user: null,
+  loading: true,
+  authenticated: false,
   login: () => {},
   logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const user: KMUser | null = session?.user
     ? {
@@ -55,7 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading: status === "loading",
+        authenticated: status === "authenticated",
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

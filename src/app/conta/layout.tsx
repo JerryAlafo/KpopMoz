@@ -16,28 +16,25 @@ const navLinks = [
 ];
 
 export default function ContaLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, loading, authenticated, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (user === null) {
-      const timer = setTimeout(() => {
-        if (!localStorage.getItem("km_session")) {
-          router.replace("/entrar");
-        }
-      }, 300);
-      return () => clearTimeout(timer);
+    if (loading) return;
+    if (!authenticated) {
+      router.replace("/entrar");
+      return;
     }
-    if (user !== null && user.onboardingComplete === false) {
+    if (user && user.onboardingComplete === false) {
       router.replace("/onboarding");
     }
-    if (user !== null && user.isBanned) {
+    if (user && user.isBanned) {
       router.replace("/banido");
     }
-  }, [user, router]);
+  }, [authenticated, loading, user, router]);
 
-  if (!user) return null;
+  if (loading || !user) return null;
 
   const initials = user.name.split(" ").map((n) => n[0]).slice(0, 2).join("");
 
