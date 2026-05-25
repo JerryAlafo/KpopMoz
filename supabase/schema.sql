@@ -58,10 +58,13 @@ CREATE TABLE IF NOT EXISTS market_items (
   price       INTEGER     NOT NULL,
   seller      TEXT        NOT NULL,
   city        TEXT        NOT NULL,
+  image_url   TEXT,
   bg          TEXT        NOT NULL DEFAULT 'linear-gradient(135deg, #1c1c1c, #0a0a0a)',
   is_active   BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE market_items ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 -- Anúncios
 CREATE TABLE IF NOT EXISTS announcements (
@@ -173,6 +176,16 @@ CREATE TABLE IF NOT EXISTS follows (
   UNIQUE(follower_email, following_email)
 );
 
+-- Utilizadores banidos
+CREATE TABLE IF NOT EXISTS banned_users (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  reason      TEXT,
+  banned_by   UUID        REFERENCES profiles(id) ON DELETE SET NULL,
+  expires_at  TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Notificações
 CREATE TABLE IF NOT EXISTS notifications (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -197,6 +210,7 @@ CREATE INDEX IF NOT EXISTS idx_post_likes_user       ON post_likes(user_email);
 CREATE INDEX IF NOT EXISTS idx_follows_follower      ON follows(follower_email);
 CREATE INDEX IF NOT EXISTS idx_follows_following     ON follows(following_email);
 CREATE INDEX IF NOT EXISTS idx_notifications_user    ON notifications(user_email, read);
+CREATE INDEX IF NOT EXISTS idx_banned_users_user     ON banned_users(user_id);
 CREATE INDEX IF NOT EXISTS idx_event_reg_user        ON event_registrations(user_email);
 CREATE INDEX IF NOT EXISTS idx_event_reg_event       ON event_registrations(event_id);
 CREATE INDEX IF NOT EXISTS idx_post_comments_post    ON post_comments(post_id);
@@ -226,6 +240,7 @@ ALTER TABLE post_likes          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_comments       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE follows             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE banned_users        ENABLE ROW LEVEL SECURITY;
 
 -- Leitura pública (acesso anon permitido)
 CREATE POLICY "Leitura publica perfis"      ON profiles         FOR SELECT USING (true);
@@ -237,6 +252,6 @@ CREATE POLICY "Leitura publica talentos"    ON talent_profiles  FOR SELECT USING
 CREATE POLICY "Leitura publica feed"        ON feed_posts       FOR SELECT USING (true);
 
 -- As tabelas abaixo (post_likes, follows, notifications, reports,
--- event_registrations) são acedidas exclusivamente pelo servidor
+-- event_registrations, banned_users) são acedidas exclusivamente pelo servidor
 -- via service_role — sem políticas anon adicionais necessárias.
 -- A chave anon não tem acesso a estas tabelas.

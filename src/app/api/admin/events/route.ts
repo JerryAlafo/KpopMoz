@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 async function requireAdmin() {
   const session = await auth();
-  return session?.user?.isAdmin ? session : null;
+  return session?.user?.isAdmin && !session.user.isBanned ? session : null;
 }
 
 function toSlug(title: string) {

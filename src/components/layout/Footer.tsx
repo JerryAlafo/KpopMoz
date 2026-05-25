@@ -37,7 +37,7 @@ const linkColumns = [
 
 const socials = [
   { label: "Instagram", href: "https://www.instagram.com/kpopmozambique_oficial/", Icon: Instagram },
-  { label: "WhatsApp", href: "https://chat.whatsapp.com/HZwzHk4DOO67h6WLyDYKpK", Icon: MessageCircle },
+  { label: "WhatsApp", href: "https://chat.whatsapp.com/Exrek8jEHj5AxTUihNQceG", Icon: MessageCircle },
   { label: "Facebook", href: "https://www.facebook.com/groups/455895496186020/", Icon: Facebook },
   { label: "YouTube", href: "https://www.youtube.com/@K-POPMOZAMBIQUE", Icon: Youtube },
 ];

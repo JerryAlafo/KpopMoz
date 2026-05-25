@@ -6,7 +6,7 @@ import { MapPin } from "lucide-react";
 export async function MarketplaceSection() {
   const { data } = await supabase
     .from("market_items")
-    .select("id, title, category, price, seller, city, condition, bg")
+    .select("id, title, category, price, seller, city, condition, bg, image_url")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(6);
@@ -20,6 +20,7 @@ export async function MarketplaceSection() {
     city: row.city as string,
     condition: row.condition as string,
     bg: row.bg as string,
+    imageUrl: row.image_url as string | null,
   }));
 
   return (
@@ -44,7 +45,14 @@ export async function MarketplaceSection() {
                 className="relative aspect-square overflow-hidden grain"
                 style={{ background: item.bg }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent" />
+                {item.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-ink/10 to-transparent" />
                 <div className="absolute top-3 left-3 bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1">
                   {item.category}
                 </div>

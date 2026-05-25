@@ -9,6 +9,7 @@ import {
   Users, FileText, Flag, Megaphone, TrendingUp, Calendar,
   ShieldCheck, Trash2, Check, X, Search, ChevronDown,
   AlertTriangle, Eye, Newspaper, Music, Plus, Send, ShoppingBag,
+  ImagePlus, Loader2, UserCog,
 } from "lucide-react";
 
 /* ── Tipos locais ──────────────────────────────────── */
@@ -16,10 +17,12 @@ interface MemberRow {
   id: string;
   name: string;
   username: string;
-  role: "mod" | "member";
+  email: string;
+  role: "admin" | "member";
   posts: number;
   joined: string;
   online: boolean;
+  banned: boolean;
 }
 
 interface ReportRow {
@@ -55,6 +58,15 @@ interface ProductRow {
   condition: string;
   seller: string;
   city: string;
+  imageUrl?: string | null;
+}
+
+interface AdminStats {
+  members: number;
+  postsToday: number;
+  activeReports: number;
+  activeEvents: number;
+  activity: { day: string; posts: number }[];
 }
 
 /* ── Mock estático só para o gráfico de actividade ── */
@@ -65,7 +77,7 @@ const STATS_LABELS = [
   { label: "Eventos activos", icon: Calendar, color: "text-amber-600" },
 ];
 
-const ACTIVITY = [
+const FALLBACK_ACTIVITY = [
   { day: "Seg", posts: 89 },
   { day: "Ter", posts: 104 },
   { day: "Qua", posts: 78 },
@@ -74,8 +86,6 @@ const ACTIVITY = [
   { day: "Sáb", posts: 201 },
   { day: "Dom", posts: 127 },
 ];
-const maxPosts = Math.max(...ACTIVITY.map((a) => a.posts));
-
 const REASON_COLOR: Record<string, string> = {
   "Spam": "text-amber-700 bg-amber-50",
   "Assédio": "text-coral bg-coral/10",
@@ -105,7 +115,6 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("todos");
   const [dismissed, setDismissed] = useState<string[]>([]);
-  const [banned, setBanned] = useState<string[]>([]);
   const [createForm, setCreateForm] = useState<CreateForm>("evento");
   const [published, setPublished] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -116,6 +125,7 @@ export default function AdminPage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [announcements, setAnnouncements] = useState<AnnouncementRow[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
 
   // Evento form state
   const [evTitle, setEvTitle] = useState("");
@@ -143,9 +153,14 @@ export default function AdminPage() {
   const [prCondition, setPrCondition] = useState("Novo");
   const [prSeller, setPrSeller] = useState("");
   const [prCity, setPrCity] = useState("Maputo");
+  const [prImageUrl, setPrImageUrl] = useState("");
+  const [prImagePreview, setPrImagePreview] = useState<string | null>(null);
+  const [prUploading, setPrUploading] = useState(false);
+  const [prImageErr, setPrImageErr] = useState("");
 
   useEffect(() => {
     if (!user?.isAdmin) return;
+    axios.get<AdminStats>("/api/admin/stats").then((r) => setAdminStats(r.data)).catch(() => {});
     axios.get<EventRow[]>("/api/admin/events").then((r) => setEvents(r.data)).catch(() => {});
     axios.get<AnnouncementRow[]>("/api/admin/announcements").then((r) => setAnnouncements(r.data)).catch(() => {});
     axios.get<ProductRow[]>("/api/admin/market").then((r) => setProducts(r.data)).catch(() => {});
@@ -168,6 +183,36 @@ export default function AdminPage() {
       setAnTitle(""); setAnBody(""); setAnFandom("Geral"); setAnPin(false);
     } else if (createForm === "produto") {
       setPrTitle(""); setPrPrice(""); setPrCategory("Photocards"); setPrCondition("Novo"); setPrSeller(""); setPrCity("Maputo");
+      clearProductImage();
+    }
+  }
+
+  function clearProductImage() {
+    if (prImagePreview) URL.revokeObjectURL(prImagePreview);
+    setPrImageUrl("");
+    setPrImagePreview(null);
+    setPrImageErr("");
+  }
+
+  async function handleProductImage(file: File | null) {
+    if (!file) return;
+
+    if (prImagePreview) URL.revokeObjectURL(prImagePreview);
+    setPrImagePreview(URL.createObjectURL(file));
+    setPrImageErr("");
+    setPrUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const { data } = await axios.post<{ url: string }>("/api/upload", formData);
+      setPrImageUrl(data.url);
+    } catch (err: any) {
+      setPrImageUrl("");
+      setPrImageErr(err?.response?.data?.error ?? "Erro ao carregar imagem.");
+    } finally {
+      setPrUploading(false);
     }
   }
 
@@ -208,6 +253,7 @@ export default function AdminPage() {
           condition: prCondition,
           seller: prSeller.trim(),
           city: prCity,
+          imageUrl: prImageUrl || undefined,
         });
         const { data } = await axios.get<ProductRow[]>("/api/admin/market");
         setProducts(data);
@@ -242,6 +288,29 @@ export default function AdminPage() {
     setDismissed((p) => [...p, id]);
   }
 
+  async function setMemberAdmin(id: string, isAdmin: boolean) {
+    const { data } = await axios.patch<MemberRow>(`/api/admin/members/${id}/role`, { isAdmin });
+    setMembers((items) => items.map((item) => item.id === id ? data : item));
+  }
+
+  async function banMember(id: string) {
+    const { data } = await axios.post<MemberRow>(`/api/admin/members/${id}/ban`, {
+      reason: "Banido pela administracao",
+    });
+    setMembers((items) => items.map((item) => item.id === id ? data : item));
+  }
+
+  async function unbanMember(id: string) {
+    const { data } = await axios.delete<MemberRow>(`/api/admin/members/${id}/ban`);
+    setMembers((items) => items.map((item) => item.id === id ? data : item));
+  }
+
+  async function deleteMember(id: string, name: string) {
+    if (!window.confirm(`Apagar definitivamente a conta de ${name}?`)) return;
+    await axios.delete(`/api/admin/members/${id}`);
+    setMembers((items) => items.filter((item) => item.id !== id));
+  }
+
   if (!user?.isAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -265,12 +334,16 @@ export default function AdminPage() {
   });
 
   const activeReports = reports.filter((r) => !dismissed.includes(r.id));
+  const activity = adminStats?.activity?.length ? adminStats.activity : FALLBACK_ACTIVITY;
+  const maxPosts = Math.max(1, ...activity.map((a) => a.posts));
+  const memberCount = members.length || adminStats?.members;
+  const eventCount = events.length || adminStats?.activeEvents;
 
   const statsValues = [
-    String(members.length || "—"),
-    "—",
+    String(memberCount ?? "—"),
+    String(adminStats?.postsToday ?? "—"),
     String(activeReports.length || "0"),
-    String(events.length || "—"),
+    String(eventCount ?? "—"),
   ];
 
   const tabs: { key: Tab; label: string; badge?: number }[] = [
@@ -340,7 +413,7 @@ export default function AdminPage() {
               </span>
             </div>
             <div className="flex items-end gap-2 h-28">
-              {ACTIVITY.map((a) => (
+              {activity.map((a) => (
                 <div key={a.day} className="flex-1 flex flex-col items-center gap-1">
                   <div
                     className="w-full bg-coral/80 hover:bg-coral transition-colors"
@@ -396,7 +469,7 @@ export default function AdminPage() {
                 className="appearance-none bg-bone border border-ink/20 px-4 pr-8 py-2.5 font-mono text-xs uppercase tracking-[0.15em] focus:outline-none focus:border-ink transition-colors w-full sm:w-auto"
               >
                 <option value="todos">Todos</option>
-                <option value="mod">Moderadores</option>
+                <option value="admin">Admins</option>
                 <option value="member">Membros</option>
               </select>
               <ChevronDown size={11} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 pointer-events-none" />
@@ -404,7 +477,7 @@ export default function AdminPage() {
           </div>
 
           <div className="border border-ink/10 overflow-x-auto">
-            <table className="w-full min-w-[560px]">
+            <table className="w-full min-w-[760px]">
               <thead>
                 <tr className="border-b border-ink/10 bg-ink/3">
                   {["Membro", "Função", "Estado", "Posts", "Registo", "Acções"].map((h) => (
@@ -415,44 +488,73 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((m) => (
-                  <tr key={m.id} className={`border-b border-ink/5 hover:bg-ink/2 transition-colors ${banned.includes(m.id) ? "opacity-40" : ""}`}>
+                {filteredMembers.map((m) => {
+                  const isCurrentUser = m.email === user.email;
+                  return (
+                  <tr key={m.id} className={`border-b border-ink/5 hover:bg-ink/2 transition-colors ${m.banned ? "opacity-50" : ""}`}>
                     <td className="px-4 py-3">
                       <div className="font-display font-semibold text-sm">{m.name}</div>
-                      <div className="font-mono text-[9px] text-ink/40">{m.username}</div>
+                      <div className="font-mono text-[9px] text-ink/40">{m.username} {isCurrentUser ? "· tu" : ""}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`font-mono text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 ${m.role === "mod" ? "bg-amber-50 text-amber-700" : "bg-ink/5 text-ink/50"}`}>
-                        {m.role === "mod" ? "Moderador" : "Membro"}
+                      <span className={`font-mono text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 ${m.role === "admin" ? "bg-amber-50 text-amber-700" : "bg-ink/5 text-ink/50"}`}>
+                        {m.role === "admin" ? "Admin" : "Membro"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${m.online ? "bg-emerald-500" : "bg-ink/20"}`} />
-                        <span className="font-mono text-[9px] text-ink/50">{m.online ? "Online" : "Offline"}</span>
+                        <span className={`w-2 h-2 rounded-full ${m.banned ? "bg-coral" : m.online ? "bg-emerald-500" : "bg-ink/20"}`} />
+                        <span className="font-mono text-[9px] text-ink/50">{m.banned ? "Banido" : m.online ? "Online" : "Offline"}</span>
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-ink/60">{m.posts}</td>
                     <td className="px-4 py-3 font-mono text-[10px] text-ink/40">{m.joined}</td>
                     <td className="px-4 py-3">
-                      {banned.includes(m.id) ? (
-                        <span className="font-mono text-[9px] text-ink/30">Banido</span>
-                      ) : (
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          disabled={isCurrentUser}
+                          onClick={() => setMemberAdmin(m.id, m.role !== "admin")}
+                          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.1em] text-ink/50 hover:text-ink disabled:opacity-30 px-2 py-1 border border-ink/10 hover:border-ink transition-colors"
+                        >
+                          <UserCog size={10} />
+                          {m.role === "admin" ? "Tirar admin" : "Tornar admin"}
+                        </button>
+                        {m.banned ? (
                           <button
-                            onClick={() => setBanned((p) => [...p, m.id])}
-                            className="font-mono text-[9px] uppercase tracking-[0.1em] text-coral hover:bg-coral/5 px-2 py-1 border border-coral/20 hover:border-coral transition-colors"
+                            disabled={isCurrentUser}
+                            onClick={() => unbanMember(m.id)}
+                            className="font-mono text-[9px] uppercase tracking-[0.1em] text-emerald-700 hover:bg-emerald-50 px-2 py-1 border border-emerald-200 hover:border-emerald-500 disabled:opacity-30 transition-colors"
+                          >
+                            Desbanir
+                          </button>
+                        ) : (
+                          <button
+                            disabled={isCurrentUser}
+                            onClick={() => banMember(m.id)}
+                            className="font-mono text-[9px] uppercase tracking-[0.1em] text-coral hover:bg-coral/5 px-2 py-1 border border-coral/20 hover:border-coral disabled:opacity-30 transition-colors"
                           >
                             Ban
                           </button>
-                          <button className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink px-2 py-1 border border-ink/10 hover:border-ink transition-colors">
-                            <Eye size={10} />
-                          </button>
-                        </div>
-                      )}
+                        )}
+                        <button
+                          disabled={isCurrentUser}
+                          onClick={() => deleteMember(m.id, m.name)}
+                          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.1em] text-coral/70 hover:text-coral disabled:opacity-30 px-2 py-1 border border-coral/10 hover:border-coral transition-colors"
+                        >
+                          <Trash2 size={10} />
+                          Apagar
+                        </button>
+                        <Link
+                          href={`/perfil/${m.username.replace(/^@/, "")}`}
+                          className="font-mono text-[9px] uppercase tracking-[0.1em] text-ink/40 hover:text-ink px-2 py-1 border border-ink/10 hover:border-ink transition-colors"
+                        >
+                          <Eye size={10} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             {filteredMembers.length === 0 && (
@@ -656,6 +758,39 @@ export default function AdminPage() {
                     <input required value={prTitle} onChange={e => setPrTitle(e.target.value)}
                       placeholder="ex: Photocard Jungkook — Proof" className={inputCls} />
                   </Field>
+                  <Field label="Foto do produto">
+                    <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-3">
+                      <label className="h-[120px] border border-dashed border-ink/25 hover:border-ink transition-colors flex flex-col items-center justify-center gap-2 cursor-pointer text-ink/50 hover:text-ink">
+                        {prUploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
+                        <span className="font-mono text-[10px] uppercase tracking-[0.15em]">
+                          {prUploading ? "A carregar" : prImageUrl ? "Trocar foto" : "Adicionar foto"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          className="hidden"
+                          onChange={(e) => handleProductImage(e.target.files?.[0] ?? null)}
+                        />
+                      </label>
+                      {prImagePreview ? (
+                        <div className="relative h-[120px] border border-ink/10 overflow-hidden bg-ink/5">
+                          <img src={prImagePreview} alt="Preview do produto" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={clearProductImage}
+                            className="absolute top-2 right-2 bg-bone text-coral border border-coral/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] hover:border-coral"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="hidden sm:flex h-[120px] border border-ink/10 bg-ink/3 items-center justify-center font-mono text-[10px] uppercase tracking-[0.15em] text-ink/30">
+                          Sem imagem
+                        </div>
+                      )}
+                    </div>
+                    {prImageErr && <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-coral">{prImageErr}</p>}
+                  </Field>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <Field label="Preço (MZN) *">
                       <input required type="number" min="1" value={prPrice} onChange={e => setPrPrice(e.target.value)}
@@ -695,7 +830,7 @@ export default function AdminPage() {
               </button>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || prUploading}
                 className={`flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-[0.15em] transition-all disabled:opacity-50 ${
                   published
                     ? "bg-emerald-500 text-bone border border-emerald-500"
@@ -831,10 +966,17 @@ export default function AdminPage() {
             </div>
             {products.map((p) => (
               <div key={p.id} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-ink/5 last:border-0 hover:bg-ink/2 transition-colors">
-                <div className="min-w-0">
-                  <div className="font-mono text-xs text-ink/70 truncate">{p.title}</div>
-                  <div className="font-mono text-[9px] text-ink/30 mt-0.5">
-                    {p.category} · {p.condition} · {p.price} MZN · {p.seller} · {p.city}
+                <div className="flex items-center gap-3 min-w-0">
+                  {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.title} className="w-10 h-10 object-cover border border-ink/10 shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 border border-ink/10 bg-ink/5 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs text-ink/70 truncate">{p.title}</div>
+                    <div className="font-mono text-[9px] text-ink/30 mt-0.5">
+                      {p.category} · {p.condition} · {p.price} MZN · {p.seller} · {p.city}
+                    </div>
                   </div>
                 </div>
                 <button

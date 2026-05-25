@@ -11,6 +11,7 @@ export interface KMUser {
   bio: string;
   fandoms: string[];
   isAdmin?: boolean;
+  isBanned?: boolean;
   onboardingComplete?: boolean;
   image?: string | null;
 }
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         bio:                session.user.bio                ?? "",
         fandoms:            session.user.fandoms            ?? [],
         isAdmin:            session.user.isAdmin            ?? false,
+        isBanned:           session.user.isBanned           ?? false,
         onboardingComplete: session.user.onboardingComplete ?? true,
         image:              session.user.image,
       }

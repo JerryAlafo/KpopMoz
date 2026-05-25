@@ -20,6 +20,7 @@ export async function GET() {
     city: row.city as string,
     condition: row.condition as string,
     bg: row.bg as string,
+    imageUrl: (row.image_url ?? undefined) as string | undefined,
   }));
 
   return NextResponse.json(items);

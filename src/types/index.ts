@@ -100,6 +100,7 @@ export interface MarketItem {
   city: string;
   condition: "Novo" | "Usado" | "Personalizado";
   bg: string;
+  imageUrl?: string;
 }
 
 export interface FeedPost {

@@ -114,7 +114,14 @@ export default function MarketplacePage() {
                     className="relative aspect-square overflow-hidden grain"
                     style={{ background: item.bg }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" />
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
                     <div className="absolute top-3 left-3 bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1">
                       {item.category}
                     </div>

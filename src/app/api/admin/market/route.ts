@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 async function requireAdmin() {
   const session = await auth();
-  return session?.user?.isAdmin ? session : null;
+  return session?.user?.isAdmin && !session.user.isBanned ? session : null;
 }
 
 const categoryBg: Record<string, string> = {
@@ -22,7 +22,7 @@ export async function GET() {
   const db = createAdminClient();
   const { data, error } = await db
     .from("market_items")
-    .select("id, title, category, price, condition, seller, city")
+    .select("id, title, category, price, condition, seller, city, image_url")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -36,6 +36,7 @@ export async function GET() {
       condition: row.condition,
       seller: row.seller,
       city: row.city,
+      imageUrl: row.image_url,
     }))
   );
 }
@@ -55,10 +56,11 @@ export async function POST(req: NextRequest) {
       price: Number(body.price) || 0,
       seller: body.seller ?? "",
       city: body.city ?? "Maputo",
+      image_url: body.imageUrl ?? null,
       bg: categoryBg[body.category] ?? "linear-gradient(135deg, #1c1c1c, #0a0a0a)",
       is_active: true,
     })
-    .select("id, title, category, price, condition, seller, city")
+    .select("id, title, category, price, condition, seller, city, image_url")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
       condition: data.condition,
       seller: data.seller,
       city: data.city,
+      imageUrl: data.image_url,
     },
     { status: 201 }
   );

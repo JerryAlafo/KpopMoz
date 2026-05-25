@@ -9,6 +9,7 @@ declare module "next-auth" {
       bio: string;
       fandoms: string[];
       isAdmin: boolean;
+      isBanned: boolean;
       onboardingComplete: boolean;
     } & DefaultSession["user"];
   }

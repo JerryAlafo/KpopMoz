@@ -32,6 +32,9 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
     if (user !== null && user.onboardingComplete === false) {
       router.replace("/onboarding");
     }
+    if (user !== null && user.isBanned) {
+      router.replace("/banido");
+    }
   }, [user, router]);
 
   if (!user) return null;
