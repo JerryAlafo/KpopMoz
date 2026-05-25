@@ -170,7 +170,7 @@ function useSearch(
     });
 
     return results;
-  }, [query, liveNews, artists, music, talents]);
+  }, [query, liveNews, artists, music, talents, liveEvents, learnItems]);
 }
 
 export default function PesquisaPage() {
@@ -368,7 +368,7 @@ export default function PesquisaPage() {
                   ?
                 </div>
                 <p className="font-display font-bold text-2xl sm:text-3xl text-ink/50">
-                  Sem resultados para "{query}"
+                  Sem resultados para &quot;{query}&quot;
                 </p>
                 <p className="mt-3 font-mono text-sm text-ink/40 tracking-wide">
                   Tenta outro termo ou navega pelas secções abaixo.
@@ -377,7 +377,7 @@ export default function PesquisaPage() {
             ) : results.length > 0 ? (
               <div>
                 <div className="font-mono text-[10px] tracking-[0.3em] uppercase text-ink/60 mb-8 pb-4 border-b border-ink/10">
-                  {results.length} resultado{results.length !== 1 ? "s" : ""} para "{query}"
+                  {results.length} resultado{results.length !== 1 ? "s" : ""} para &quot;{query}&quot;
                 </div>
 
                 <div className="space-y-12 lg:space-y-16">

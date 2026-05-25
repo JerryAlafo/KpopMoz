@@ -160,7 +160,7 @@ export default function SobrePage() {
             </div>
             <div className="lg:col-span-7 lg:pl-8">
               <div className="space-y-0">
-                {timeline.map((item, i) => (
+                {timeline.map((item) => (
                   <div
                     key={item.year}
                     className="grid grid-cols-[auto_1fr] gap-6 py-6 lg:py-8 border-t border-ink/15 first:border-t-0 group cursor-default"
@@ -295,7 +295,7 @@ export default function SobrePage() {
             <span className="italic text-coral">define.</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-0">
-            {values.map((v, i) => (
+            {values.map((v) => (
               <div
                 key={v.num}
                 className="py-8 lg:py-10 px-0 lg:px-10 border-t border-ink/15 first:border-t-0 sm:[&:nth-child(2)]:border-t-0 sm:[&:nth-child(odd)]:pl-0 sm:[&:nth-child(even)]:border-l sm:[&:nth-child(even)]:pl-10 group"

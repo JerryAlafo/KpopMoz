@@ -74,9 +74,9 @@ export async function DELETE(
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
-      { error: err?.message ?? "Erro ao apagar conta." },
+      { error: err instanceof Error ? err.message : "Erro ao apagar conta." },
       { status: 500 }
     );
   }

@@ -40,7 +40,7 @@ export function AboutSection() {
 
           <div className="lg:col-span-7 lg:pl-8">
             <div className="space-y-0">
-              {timeline.map((item, i) => (
+              {timeline.map((item) => (
                 <div
                   key={item.year}
                   className="grid grid-cols-[auto_1fr] gap-6 py-5 lg:py-7 border-t border-ink/15 first:border-t-0 lg:first:border-t group cursor-default"

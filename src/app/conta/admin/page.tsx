@@ -208,9 +208,13 @@ export default function AdminPage() {
     try {
       const { data } = await axios.post<{ url: string }>("/api/upload", formData);
       setPrImageUrl(data.url);
-    } catch (err: any) {
+    } catch (err) {
       setPrImageUrl("");
-      setPrImageErr(err?.response?.data?.error ?? "Erro ao carregar imagem.");
+      setPrImageErr(
+        axios.isAxiosError<{ error?: string }>(err)
+          ? err.response?.data?.error ?? "Erro ao carregar imagem."
+          : "Erro ao carregar imagem."
+      );
     } finally {
       setPrUploading(false);
     }
@@ -286,6 +290,12 @@ export default function AdminPage() {
   async function dismissReport(id: string) {
     await axios.patch("/api/admin/reports", { id, status: "ignorado" });
     setDismissed((p) => [...p, id]);
+  }
+
+  async function deleteReportedPost(id: string) {
+    await axios.delete("/api/admin/reports", { data: { id } });
+    setDismissed((p) => [...p, id]);
+    setReports((items) => items.filter((item) => item.id !== id));
   }
 
   async function setMemberAdmin(id: string, isAdmin: boolean) {
@@ -597,7 +607,10 @@ export default function AdminPage() {
                 <p className="font-mono text-xs text-ink/70">{r.post}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-2 bg-coral text-bone border border-coral hover:bg-coral/80 transition-colors">
+                <button
+                  onClick={() => deleteReportedPost(r.id)}
+                  className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-2 bg-coral text-bone border border-coral hover:bg-coral/80 transition-colors"
+                >
                   <Trash2 size={11} strokeWidth={2} /> Apagar post
                 </button>
                 <button
@@ -896,16 +909,19 @@ export default function AdminPage() {
                 <Newspaper size={13} className="text-coral" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Notícias</span>
               </div>
-              <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-ink/35">
-                Curadoria editorial
-              </span>
+              <a
+                href="mailto:kpopmozambique@gmail.com?subject=Curadoria%20editorial%20KPOP.MZ"
+                className="font-mono text-[9px] uppercase tracking-[0.15em] text-ink/35 hover:text-coral transition-colors"
+              >
+                Contactar editorial
+              </a>
             </div>
             <div className="px-4 py-4">
               <div className="font-display font-semibold text-sm">
                 As notícias são geridas pela equipa editorial da KM.
               </div>
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink/35">
-                Para publicar ou remover uma notícia, contacta a equipa editorial directamente.
+                Para publicar ou remover uma notícia, usa o contacto editorial acima.
               </p>
             </div>
           </div>
@@ -996,9 +1012,9 @@ export default function AdminPage() {
                 <Music size={13} className="text-coral" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Artistas & Talentos</span>
               </div>
-              <button className="font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 bg-ink text-bone hover:bg-ink/80 transition-colors">
-                + Adicionar
-              </button>
+              <Link href="/talentos" className="font-mono text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 bg-ink text-bone hover:bg-ink/80 transition-colors">
+                Ver talentos
+              </Link>
             </div>
             <div className="px-4 py-3 font-mono text-[10px] text-ink/30 uppercase tracking-[0.15em]">
               Gerido pela equipa KM

@@ -7,6 +7,7 @@ import {
   Heart, MessageCircle, Share2, Check, Newspaper, Calendar,
   Mic2, Trophy, ArrowUpRight, ImageIcon, Send, TrendingUp,
   Users, UserPlus, UserCheck, Bell, X, Loader2, ChevronDown, Trash2,
+  Flag,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -79,9 +80,14 @@ function PostCard({
   const [followBusy,   setFollowBusy]   = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting,        setDeleting]        = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason,    setReportReason]    = useState("Spam ou publicidade");
+  const [reportDetails,   setReportDetails]   = useState("");
+  const [reporting,       setReporting]       = useState(false);
+  const [reported,        setReported]        = useState(false);
+  const [reportError,     setReportError]     = useState("");
 
   // Sincroniza quando o pai actualiza followingEmails
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setFollowing(isFollowing); }, [isFollowing]);
 
   const [showComments,   setShowComments]   = useState(false);
@@ -177,6 +183,41 @@ function PostCard({
       if (res.ok) { setShowDeleteModal(false); onDeleted(post.id); }
     } catch {} finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleReport(e: { preventDefault(): void }) {
+    e.preventDefault();
+    if (!userEmail || reporting || reported) return;
+    const details = reportDetails.trim();
+    const reason = reportReason === "Outro"
+      ? details
+      : details
+        ? `${reportReason}: ${details}`
+        : reportReason;
+
+    if (reason.trim().length < 3) {
+      setReportError("Indica um motivo para a denuncia.");
+      return;
+    }
+
+    setReporting(true);
+    setReportError("");
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post.id, reason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Nao foi possivel enviar a denuncia.");
+      setReported(true);
+      setShowReportModal(false);
+      setReportDetails("");
+    } catch (err) {
+      setReportError(err instanceof Error ? err.message : "Nao foi possivel enviar a denuncia.");
+    } finally {
+      setReporting(false);
     }
   }
 
@@ -346,7 +387,7 @@ function PostCard({
           </button>
         </div>
 
-        {/* Direita: partilhar + apagar */}
+        {/* Direita: partilhar + denunciar/apagar */}
         <div className="flex items-center gap-0.5">
           <button
             onClick={handleShare}
@@ -365,6 +406,22 @@ function PostCard({
             </span>
           </button>
 
+          {userEmail && userEmail !== post.author.email && (
+            <button
+              onClick={() => setShowReportModal(true)}
+              disabled={reported}
+              title={reported ? "Denuncia enviada" : "Denunciar post"}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] border transition-colors disabled:cursor-default ${
+                reported
+                  ? "border-amber-300/50 text-amber-700 bg-amber-50"
+                  : "border-transparent text-ink/30 hover:text-coral hover:border-coral/20"
+              }`}
+            >
+              {reported ? <Check size={12} strokeWidth={2.5} /> : <Flag size={12} strokeWidth={2} />}
+              <span className="hidden sm:inline">{reported ? "Denunciado" : "Denunciar"}</span>
+            </button>
+          )}
+
           {/* Apagar — só o autor, abre modal */}
           {userEmail && userEmail === post.author.email && (
             <button
@@ -377,6 +434,77 @@ function PostCard({
           )}
         </div>
       </div>
+
+      {showReportModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-ink/60 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowReportModal(false); }}
+        >
+          <form onSubmit={handleReport} className="w-full sm:max-w-md bg-bone border border-ink/15 shadow-xl mb-16 sm:mb-0">
+            <div className="px-6 py-5 border-b border-ink/10">
+              <div className="font-display font-bold text-lg mb-1">Denunciar publicacao</div>
+              <p className="font-mono text-xs text-ink/50 leading-relaxed">
+                A equipa admin vai rever esta denuncia antes de tomar uma acao.
+              </p>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <label className="block">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/50">
+                  Motivo
+                </span>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="mt-2 w-full border border-ink/15 bg-transparent px-3 py-2 font-mono text-xs focus:outline-none focus:border-ink"
+                >
+                  <option>Spam ou publicidade</option>
+                  <option>Assedio ou ataque pessoal</option>
+                  <option>Conteudo ofensivo</option>
+                  <option>Informacao falsa</option>
+                  <option>Outro</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/50">
+                  Detalhes
+                </span>
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  maxLength={180}
+                  rows={3}
+                  placeholder="Opcional, mas ajuda a moderacao."
+                  className="mt-2 w-full resize-none border border-ink/15 bg-transparent px-3 py-2 font-mono text-xs focus:outline-none focus:border-ink"
+                />
+              </label>
+              {reportError && (
+                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-coral">
+                  {reportError}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-3 px-6 py-4 border-t border-ink/10">
+              <button
+                type="submit"
+                disabled={reporting}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-coral text-bone border border-coral font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-coral/80 transition-colors disabled:opacity-50"
+              >
+                {reporting
+                  ? <><Loader2 size={11} className="animate-spin" /> A enviar</>
+                  : <><Flag size={11} /> Enviar denuncia</>}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                disabled={reporting}
+                className="flex-1 py-2.5 border border-ink/20 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60 hover:border-ink hover:text-ink transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Modal de confirmação de apagar */}
       {showDeleteModal && (

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { MapPin, Clock, Users, ArrowLeft, ArrowUpRight, Calendar, CheckCircle } from "lucide-react";
+import { MapPin, Clock, ArrowLeft, ArrowUpRight, Calendar, CheckCircle } from "lucide-react";
 import { Marquee } from "@/components/shared/Marquee";
+import { EventRegistrationCard } from "@/components/eventos/EventRegistrationCard";
 
 export async function generateStaticParams() {
   const { data } = await supabase.from("events").select("slug");
@@ -78,9 +79,6 @@ export default async function EventoPage({
   };
 
   const [year, month, day] = event.date.split("-");
-  const progress = event.capacity
-    ? Math.min(100, Math.round((event.registered / event.capacity) * 100))
-    : null;
 
   const { data: relatedRows } = await supabase
     .from("events")
@@ -213,84 +211,13 @@ export default async function EventoPage({
             {/* Registration card */}
             <div className="lg:col-span-4 lg:col-start-9">
               <div className="sticky top-28 space-y-4">
-                <div className="border-2 border-ink p-6 lg:p-8">
-                  <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-ink/60 mb-4">
-                    Inscrição
-                  </div>
-                  <div className="font-display font-black text-5xl lg:text-6xl leading-none mb-1">
-                    {event.free ? "Grátis" : event.price}
-                    {!event.free && (
-                      <span className="text-xl ml-1 font-mono font-normal">MZN</span>
-                    )}
-                  </div>
-
-                  {progress !== null && (
-                    <div className="mt-4 mb-5">
-                      <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.15em] uppercase text-ink/60 mb-2">
-                        <span className="inline-flex items-center gap-1">
-                          <Users size={11} /> {event.registered} / {event.capacity}
-                        </span>
-                        <span>{progress}% preenchido</span>
-                      </div>
-                      <div className="h-1.5 bg-ink/10 relative overflow-hidden">
-                        <div
-                          className="absolute inset-y-0 left-0 bg-coral transition-all"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {progress === null && (
-                    <div className="mt-3 mb-5 font-mono text-[10px] tracking-[0.15em] uppercase text-ink/60">
-                      {event.registered} inscritos
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    <label className="block">
-                      <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/60">
-                        Nome completo
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="O teu nome"
-                        className="w-full border-b border-ink/20 py-2 mt-1 focus:border-coral focus:outline-none transition-colors text-sm bg-transparent"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/60">
-                        Email
-                      </span>
-                      <input
-                        type="email"
-                        placeholder="o.teu@email.mz"
-                        className="w-full border-b border-ink/20 py-2 mt-1 focus:border-coral focus:outline-none transition-colors text-sm bg-transparent"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/60">
-                        Cidade
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Maputo, Beira..."
-                        className="w-full border-b border-ink/20 py-2 mt-1 focus:border-coral focus:outline-none transition-colors text-sm bg-transparent"
-                      />
-                    </label>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="mt-6 w-full btn-brutal justify-center"
-                  >
-                    Confirmar inscrição
-                    <ArrowUpRight size={14} />
-                  </button>
-                  <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink/40 mt-3 text-center">
-                    Receberás confirmação por email
-                  </p>
-                </div>
+                <EventRegistrationCard
+                  eventId={event.id}
+                  free={event.free}
+                  price={event.price}
+                  initialRegistered={event.registered}
+                  capacity={event.capacity}
+                />
 
                 <Link
                   href="/comunidade"

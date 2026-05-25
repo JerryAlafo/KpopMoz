@@ -248,10 +248,13 @@ export default function TalentosPage() {
                 Envia o teu perfil e a nossa equipa analisa. Se aprovado, ficas
                 visível para toda a comunidade.
               </p>
-              <button className="btn-brutal mt-8">
+              <a
+                href="mailto:kpopmozambique@gmail.com?subject=Submeter%20perfil%20de%20talento&body=Nome%3A%0AUsername%3A%0ACidade%3A%0AEspecialidade%3A%0ALinks%20ou%20portfolio%3A%0ABio%3A"
+                className="btn-brutal mt-8 inline-flex"
+              >
                 Submeter perfil
                 <ArrowUpRight size={14} />
-              </button>
+              </a>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {specialties.filter((item) => item !== "Todos").map((specialty, index) => (

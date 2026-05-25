@@ -37,7 +37,7 @@ export async function TalentsSection() {
               Não foi possível carregar talentos agora.
             </div>
             <p className="mt-2 max-w-xl text-sm text-ink/65 leading-relaxed">
-              Tenta novamente em breve.
+              Abre a página de talentos para pesquisar novamente.
             </p>
             <Link
               href="/talentos"

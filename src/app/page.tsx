@@ -9,6 +9,7 @@ import { MarketplaceSection } from "@/components/home/MarketplaceSection";
 import { LearnSection } from "@/components/home/LearnSection";
 import { AboutSection } from "@/components/home/AboutSection";
 import { JoinCTA } from "@/components/home/JoinCTA";
+import { CommunityMoments } from "@/components/comunidade/CommunityMoments";
 
 function FeaturedNewsLoading() {
   return (
@@ -79,6 +80,7 @@ export default function Home() {
         <FeaturedNews />
       </Suspense>
       <EventsSection />
+      <CommunityMoments />
       <Suspense fallback={<CatalogSectionLoading />}>
         <TalentsSection />
       </Suspense>

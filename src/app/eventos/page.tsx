@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { Marquee } from "@/components/shared/Marquee";
-import { MapPin, Clock, Users, ArrowUpRight, Calendar } from "lucide-react";
+import { MapPin, Users, ArrowUpRight, Calendar } from "lucide-react";
 import type { EventItem, EventType } from "@/types";
 
 const monthMap: Record<string, string> = {
@@ -201,10 +201,13 @@ export default function EventosPage() {
             Submete o teu evento para apreciação da equipa KM e ganha visibilidade
             junto da maior comunidade K-POP do país.
           </p>
-          <button className="btn-brutal mt-8">
+          <a
+            href="mailto:kpopmozambique@gmail.com?subject=Submeter%20evento%20K-POP&body=Nome%20do%20evento%3A%0AData%3A%0ACidade%3A%0ALocal%3A%0ADescricao%3A"
+            className="btn-brutal mt-8 inline-flex"
+          >
             Submeter evento
             <ArrowUpRight size={14} />
-          </button>
+          </a>
         </div>
       </section>
     </>

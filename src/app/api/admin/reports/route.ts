@@ -56,3 +56,55 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!await requireAdmin()) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await req.json();
+  const db = createAdminClient();
+
+  const { data: report, error: reportError } = await db
+    .from("reports")
+    .select("id, post_content, author_username")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (reportError) return NextResponse.json({ error: reportError.message }, { status: 500 });
+  if (!report) return NextResponse.json({ error: "Denuncia nao encontrada" }, { status: 404 });
+
+  const usernames = report.author_username.startsWith("@")
+    ? [report.author_username]
+    : [report.author_username, `@${report.author_username}`];
+
+  const { data: profiles, error: profileError } = await db
+    .from("profiles")
+    .select("email")
+    .in("username", usernames);
+
+  if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
+  const authorEmail = profiles?.[0]?.email;
+  if (!authorEmail) return NextResponse.json({ error: "Autor do post nao encontrado" }, { status: 404 });
+
+  const { data: posts, error: postsError } = await db
+    .from("feed_posts")
+    .select("id")
+    .eq("author_email", authorEmail)
+    .eq("content", report.post_content)
+    .limit(1);
+
+  if (postsError) return NextResponse.json({ error: postsError.message }, { status: 500 });
+  const postId = posts?.[0]?.id;
+  if (!postId) return NextResponse.json({ error: "Post nao encontrado" }, { status: 404 });
+
+  const { error: deleteError } = await db.from("feed_posts").delete().eq("id", postId);
+  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
+
+  const { error: updateError } = await db
+    .from("reports")
+    .update({ status: "apagado" })
+    .eq("id", id);
+
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true });
+}

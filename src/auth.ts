@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { type Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
@@ -125,7 +125,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
 
-    async session({ session, token }: { session: any; token: JWT }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (!session.user) return session;
 
       // Garante que o email vem do token JWT

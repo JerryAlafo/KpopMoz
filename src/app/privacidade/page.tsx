@@ -17,11 +17,11 @@ const sections = [
   },
   {
     title: "3. Como usamos os teus dados",
-    body: "Utilizamos os teus dados para gerir a tua conta, enviar o newsletter semanal (se subscrito), notificá-te de eventos relevantes na tua cidade, e personalizar o conteúdo que vês na plataforma. Nunca vendemos nem partilhamos os teus dados com terceiros para fins comerciais.",
+    body: "Utilizamos os teus dados para gerir a tua conta, registar participações em eventos, apresentar conteúdo relevante na plataforma e melhorar a experiência de forma agregada. Nunca vendemos nem partilhamos os teus dados com terceiros para fins comerciais.",
   },
   {
-    title: "4. Newsletter e comunicações",
-    body: "O newsletter semanal é de subscrição voluntária. Podes cancelar a subscrição a qualquer momento através do link de cancelamento em qualquer email enviado ou através das definições da tua conta. As comunicações operacionais (segurança da conta, por exemplo) não podem ser desativadas.",
+    title: "4. Comunicações",
+    body: "Podemos apresentar avisos operacionais dentro da plataforma, como notificações de atividade da conta ou eventos. Qualquer envio de email promocional só será ativado quando existir uma opção clara de subscrição e cancelamento.",
   },
   {
     title: "5. Cookies",

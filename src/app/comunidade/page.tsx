@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { Users, MessageSquare, Heart, Calendar, Sparkles, Trophy } from "lucide-react";
 import { SignUpCard } from "@/components/comunidade/SignUpCard";
+import { CommunityMoments } from "@/components/comunidade/CommunityMoments";
 
 const fandoms = [
   { name: "ARMY", group: "BTS", members: 1842, color: "#7a2c5e" },
@@ -85,6 +87,8 @@ export default function ComunidadePage() {
         </div>
       </section>
 
+      <CommunityMoments />
+
       {/* Fandoms */}
       <section className="py-16 lg:py-24 bg-ink text-bone grain">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -101,8 +105,9 @@ export default function ComunidadePage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
             {fandoms.map((f, i) => (
-              <button
+              <Link
                 key={f.name}
+                href={`/pesquisa?q=${encodeURIComponent(f.name)}`}
                 className="group relative aspect-square p-4 lg:p-5 flex flex-col justify-between text-left transition-transform hover:-translate-y-1 grain"
                 style={{ backgroundColor: f.color }}
               >
@@ -118,7 +123,7 @@ export default function ComunidadePage() {
                     {f.members.toLocaleString()} membros
                   </div>
                 </div>
-              </button>
+              </Link>
             ))}
           </div>
         </div>

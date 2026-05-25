@@ -151,9 +151,13 @@ export default async function LearnArticlePage({
                   ))}
                 </div>
               ) : (
-                <p className="text-base lg:text-lg text-ink/60 leading-relaxed italic">
-                  Conteúdo completo em breve.
-                </p>
+                <div className="space-y-5 text-base lg:text-lg text-ink/75 leading-[1.85]">
+                  <p>{topic.excerpt}</p>
+                  <p>
+                    Usa este resumo como ponto de partida e continua a explorar conteúdos
+                    relacionados no centro de aprendizagem ou conversa com a comunidade KM.
+                  </p>
+                </div>
               )}
 
               {/* CTA para workshop */}
@@ -206,7 +210,10 @@ export default async function LearnArticlePage({
                     </Link>
                   ))}
                   {sameCat.length === 0 && (
-                    <p className="text-sm text-ink/50">Mais artigos em breve.</p>
+                    <Link href="/aprender" className="inline-flex items-center gap-2 text-sm text-coral hover:underline">
+                      Ver todos os artigos
+                      <ArrowUpRight size={13} />
+                    </Link>
                   )}
                 </div>
               </div>
