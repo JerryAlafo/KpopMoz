@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Users, Calendar, Zap, MapPin, Star } from "lucide-react";
 import { Marquee } from "@/components/shared/Marquee";
+import { supabase } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Sobre a KM — KPOP.MZ",
@@ -64,16 +65,25 @@ const values = [
   },
 ];
 
-const stats = [
-  { num: "5.2K+", label: "Membros ativos" },
-  { num: "6", label: "Anos de comunidade" },
-  { num: "50+", label: "Eventos realizados" },
-  { num: "3", label: "Festivais institucionais" },
-  { num: "12+", label: "Grupos de cover dance" },
-  { num: "2", label: "Cidades com presença física" },
-];
+export default async function SobrePage() {
+  const [{ count: membersCount }, { count: eventsCount }] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("events").select("*", { count: "exact", head: true }),
+  ]);
 
-export default function SobrePage() {
+  const membersNum = membersCount != null && membersCount >= 1000
+    ? `${(membersCount / 1000).toFixed(1).replace(".", ",")}K+`
+    : `${membersCount ?? 0}`;
+  const eventsNum = eventsCount != null && eventsCount > 0 ? `${eventsCount}+` : "—";
+
+  const stats = [
+    { num: membersNum, label: "Membros ativos" },
+    { num: "6", label: "Anos de comunidade" },
+    { num: eventsNum, label: "Eventos realizados" },
+    { num: "3", label: "Festivais institucionais" },
+    { num: "12+", label: "Grupos de cover dance" },
+    { num: "2", label: "Cidades com presença física" },
+  ];
   return (
     <>
       {/* Hero */}

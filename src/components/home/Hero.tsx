@@ -1,7 +1,24 @@
 import Link from "next/link";
 import { ArrowRight, Calendar, Users, Zap } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
-export function Hero() {
+function fmt(n: number): string {
+  if (n >= 1000) {
+    const k = n / 1000;
+    return (k % 1 === 0 ? `${k}K` : `${k.toFixed(1).replace(".", ",")}K`) + "+";
+  }
+  return String(n);
+}
+
+export async function Hero() {
+  const [{ count: membersCount }, { count: eventsCount }] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("events").select("*", { count: "exact", head: true }),
+  ]);
+
+  const membersNum = fmt(membersCount ?? 0);
+  const eventsNum = String(eventsCount ?? 0);
+
   return (
     <section className="relative pt-24 lg:pt-32 pb-12 lg:pb-20 overflow-hidden">
       {/* Decorative hangul */}
@@ -71,8 +88,8 @@ export function Hero() {
         {/* Stats strip */}
         <div className="mt-12 lg:mt-20 grid grid-cols-2 lg:grid-cols-4 border-t border-ink/15 border-b border-ink/15 divide-y lg:divide-y-0 lg:divide-x divide-ink/15">
           {[
-            { num: "5,2K", label: "Membros activos", Icon: Users },
-            { num: "48", label: "Eventos desde 2020", Icon: Calendar },
+            { num: membersNum, label: "Membros activos", Icon: Users },
+            { num: eventsNum, label: "Eventos desde 2020", Icon: Calendar },
             { num: "3", label: "Festivais com a Embaixada", Icon: Zap },
             { num: "12+", label: "Grupos de cover dance", Icon: Users },
           ].map(({ num, label, Icon }, i) => (
