@@ -1,18 +1,12 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
+import { supabase } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "Imprensa — KPOP.MZ",
   description: "Recursos de imprensa e contacto para media sobre a KpopMoçambique.",
 };
-
-const stats = [
-  { value: "6+", label: "Anos de comunidade" },
-  { value: "8 000+", label: "Membros ativos" },
-  { value: "12+", label: "Eventos realizados" },
-  { value: "2", label: "Festivais institucionais" },
-];
 
 const pressItems = [
   {
@@ -47,7 +41,23 @@ const contacts = [
   { role: "Redes sociais", handle: "@kpopmozambique_oficial" },
 ];
 
-export default function ImprensaPage() {
+export default async function ImprensaPage() {
+  const [{ count: membersCount }, { count: eventsCount }] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("events").select("*", { count: "exact", head: true }),
+  ]);
+  const membersNum = membersCount != null && membersCount >= 1000
+    ? `${Math.floor(membersCount / 1000)} ${String(membersCount % 1000).padStart(3, "0")}+`
+    : `${membersCount ?? 0}+`;
+  const eventsNum = eventsCount != null ? `${eventsCount}+` : "—";
+
+  const stats = [
+    { value: "6+", label: "Anos de comunidade" },
+    { value: membersNum, label: "Membros ativos" },
+    { value: eventsNum, label: "Eventos realizados" },
+    { value: "2", label: "Festivais institucionais" },
+  ];
+
   return (
     <>
       <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 bg-ink text-bone relative overflow-hidden grain">
