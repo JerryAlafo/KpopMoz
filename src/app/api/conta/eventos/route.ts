@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase";
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) {
-    return NextResponse.json([], { status: 401 });
+    return NextResponse.json({ upcoming: [], past: [] }, { status: 401 });
   }
 
   const db = createAdminClient();
@@ -17,7 +17,7 @@ export async function GET() {
     .eq("user_email", session.user.email)
     .order("created_at", { ascending: false });
 
-  const past = (data ?? [])
+  const all = (data ?? [])
     .map((r) => {
       const e = Array.isArray(r.events) ? r.events[0] : r.events;
       if (!e) return null;
@@ -35,7 +35,10 @@ export async function GET() {
         coverBg: e.cover_bg,
       };
     })
-    .filter((e): e is NonNullable<typeof e> => e !== null && e.date < today);
+    .filter((e): e is NonNullable<typeof e> => e !== null);
 
-  return NextResponse.json(past);
+  return NextResponse.json({
+    upcoming: all.filter((e) => e.date >= today),
+    past:     all.filter((e) => e.date < today),
+  });
 }

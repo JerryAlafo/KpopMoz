@@ -50,7 +50,7 @@ export function SignUpCard() {
         return;
       }
       const signin = await signIn("credentials", {
-        email, password, callbackUrl: "/conta", redirect: false,
+        email, password, callbackUrl: "/conta/feed", redirect: false,
       });
       if (signin?.url) router.push(signin.url);
     } catch {
@@ -147,7 +147,7 @@ export function SignUpCard() {
 
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/conta" })}
+        onClick={() => signIn("google", { callbackUrl: "/conta/feed" })}
         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-bone/20 hover:border-bone/50 font-mono text-xs uppercase tracking-[0.2em] text-bone/60 hover:text-bone transition-colors"
       >
         <GoogleIcon />

@@ -40,10 +40,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async signIn({ user, account }) {
-      // Credentials: validação já feita no authorize()
-      if (account?.provider === "credentials") return true;
-      // Outros providers sem email: deixa passar
       if (!user.email) return true;
+
+      // Credentials: cria perfil se não existir (utilizadores criados manualmente)
+      if (account?.provider === "credentials") {
+        try {
+          const db = createAdminClient();
+          const { data } = await db
+            .from("profiles")
+            .select("id")
+            .eq("email", user.email)
+            .maybeSingle();
+          if (!data) {
+            const base = user.email.split("@")[0].replace(/[^a-z0-9]/gi, "").toLowerCase();
+            await db.from("profiles").insert({
+              email:               user.email,
+              name:                user.name ?? "Utilizador",
+              username:            `@${base}`,
+              avatar_url:          null,
+              onboarding_complete: false,
+            });
+          }
+        } catch (err) {
+          console.error("[auth] signIn credentials error:", err);
+        }
+        return true;
+      }
+
+      // Outros providers sem email: deixa passar
+
 
       // Google: criar perfil se não existir
       if (account?.provider === "google") {

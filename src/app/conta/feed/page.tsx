@@ -35,13 +35,6 @@ const TYPE_BADGE: Record<string, { label: string; cls: string; icon?: React.Reac
 
 const FANDOM_FILTERS = ["Todos", "ARMY", "BLINK", "STAY", "ONCE", "MOA", "CARAT", "ATINY", "Bunnies"];
 
-const TRENDING = [
-  { tag: "RandomDanceJunho", count: 312 },
-  { tag: "BlackpinkTour",    count: 287 },
-  { tag: "StrayKidsATE",     count: 201 },
-  { tag: "KpopMz8k",         count: 178 },
-  { tag: "CoverDanceBeira",  count: 134 },
-];
 
 const FANDOM_BG: Record<string, string> = {
   ARMY:    "linear-gradient(135deg,#7B65C8,#ffd23f)",
@@ -50,12 +43,22 @@ const FANDOM_BG: Record<string, string> = {
   ONCE:    "linear-gradient(135deg,#ffd23f,#7af0c8)",
 };
 
-/* ── tipos de comentário ─────────────────────────────── */
+/* ── tipos ───────────────────────────────────────────── */
 interface Comment {
   id: string;
   content: string;
   createdAt: string;
   author: { name: string; username: string; initials: string; avatarBg: string };
+}
+
+interface NotifItem {
+  id: string;
+  type: string;
+  fromName: string;
+  fromUser: string;
+  postId: string | null;
+  read: boolean;
+  createdAt: string;
 }
 
 /* ── PostCard ────────────────────────────────────────── */
@@ -178,7 +181,9 @@ function PostCard({
   }
 
   async function toggleComments() {
-    if (!showComments && comments.length === 0) {
+    const opening = !showComments;
+    setShowComments(opening);
+    if (opening && comments.length === 0) {
       setLoadingComments(true);
       try {
         const res = await fetch(`/api/feed/${post.id}/comments`);
@@ -187,7 +192,6 @@ function PostCard({
         setLoadingComments(false);
       }
     }
-    setShowComments((v) => !v);
   }
 
   async function handlePostComment(e: { preventDefault(): void }) {
@@ -555,10 +559,11 @@ function MemberRow({
 
 /* ── ComposeBox ──────────────────────────────────────── */
 function ComposeBox({
-  authorInitials, authorBg, userEmail, onPosted,
+  authorInitials, authorBg, authorAvatarUrl, userEmail, onPosted,
 }: {
   authorInitials: string;
   authorBg: string;
+  authorAvatarUrl?: string | null;
   userEmail: string | null;
   onPosted: () => void;
 }) {
@@ -650,12 +655,21 @@ function ComposeBox({
     <div className="border border-ink/15 bg-bone p-4 space-y-3">
       <div className="flex gap-3">
         {/* Avatar */}
-        <div
-          className="w-9 h-9 shrink-0 grain flex items-center justify-center font-display font-black text-sm text-bone"
-          style={{ background: authorBg }}
-        >
-          {authorInitials}
-        </div>
+        {authorAvatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={authorAvatarUrl}
+            alt="O teu avatar"
+            className="w-9 h-9 shrink-0 object-cover border border-ink/10"
+          />
+        ) : (
+          <div
+            className="w-9 h-9 shrink-0 grain flex items-center justify-center font-display font-black text-sm text-bone"
+            style={{ background: authorBg }}
+          >
+            {authorInitials}
+          </div>
+        )}
 
         {/* Corpo */}
         <div className="flex-1 space-y-2">
@@ -806,6 +820,10 @@ export default function FeedPage() {
   const [activeMembers, setActiveMembers] = useState<Member[]>([]);
   const [followingEmails, setFollowingEmails] = useState<Set<string>>(new Set());
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [notifications, setNotifications] = useState<NotifItem[]>([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(false);
+  const [trending, setTrending] = useState<{ tag: string; count: number }[]>([]);
 
   const pageRef    = useRef(1);
   const loadingRef = useRef(false);
@@ -844,6 +862,10 @@ export default function FeedPage() {
     fetch("/api/stats/members")
       .then((r) => r.ok ? r.json() : [])
       .then((d) => { if (Array.isArray(d)) setActiveMembers(d); })
+      .catch(() => {});
+    fetch("/api/feed/trending")
+      .then((r) => r.ok ? r.json() : [])
+      .then((d) => { if (Array.isArray(d)) setTrending(d); })
       .catch(() => {});
   }, []);
 
@@ -908,25 +930,91 @@ export default function FeedPage() {
             <h1 className="font-display font-bold text-3xl tracking-tight">
               Feed<span className="text-coral">.</span>
             </h1>
-            {unreadNotifs > 0 && (
-              <button
-                onClick={() => {
-                  setUnreadNotifs(0);
-                  fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
-                }}
-                className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-coral hover:text-coral/70 transition-colors"
-              >
-                <Bell size={12} strokeWidth={2} />
-                {unreadNotifs} nova{unreadNotifs > 1 ? "s" : ""}
-              </button>
-            )}
+            <button
+              onClick={() => {
+                const opening = !showNotifPanel;
+                setShowNotifPanel(opening);
+                if (opening) {
+                  setLoadingNotifs(true);
+                  setNotifications([]);
+                  fetch("/api/notifications")
+                    .then((r) => r.ok ? r.json() : [])
+                    .then((d) => { if (Array.isArray(d)) setNotifications(d); })
+                    .catch(() => {})
+                    .finally(() => setLoadingNotifs(false));
+                } else {
+                  if (unreadNotifs > 0) {
+                    setUnreadNotifs(0);
+                    fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
+                  }
+                }
+              }}
+              className={`relative flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors ${showNotifPanel ? "text-coral" : unreadNotifs > 0 ? "text-coral hover:text-coral/70" : "text-ink/40 hover:text-ink"}`}
+            >
+              <Bell size={14} strokeWidth={2} />
+              {unreadNotifs > 0 && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-coral text-bone font-mono text-[8px] rounded-full flex items-center justify-center leading-none">
+                  {unreadNotifs > 9 ? "9+" : unreadNotifs}
+                </span>
+              )}
+            </button>
           </div>
+
+          {/* Painel de notificações */}
+          {showNotifPanel && (
+            <div className="mt-3 border border-ink/15 bg-bone">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-ink/10">
+                <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-ink/60">Notificações</span>
+                <button
+                  onClick={() => {
+                    setShowNotifPanel(false);
+                    if (unreadNotifs > 0) {
+                      setUnreadNotifs(0);
+                      fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
+                    }
+                  }}
+                  className="text-ink/40 hover:text-ink"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              {loadingNotifs ? (
+                <div className="flex items-center justify-center gap-2 px-4 py-8 font-mono text-[10px] text-ink/30">
+                  <Loader2 size={12} className="animate-spin" /> A carregar…
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="px-4 py-8 text-center font-mono text-xs text-ink/30 tracking-[0.15em] uppercase">
+                  Sem notificações
+                </div>
+              ) : (
+                <ul className="divide-y divide-ink/5 max-h-72 overflow-y-auto">
+                  {notifications.map((n) => (
+                    <li key={n.id} className={`px-4 py-3 flex items-start gap-3 ${n.read ? "opacity-60" : ""}`}>
+                      <div className={`mt-0.5 w-1.5 h-1.5 rounded-full shrink-0 ${n.read ? "bg-ink/20" : "bg-coral"}`} />
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] text-ink leading-snug">
+                          <span className="font-bold">{n.fromName}</span>
+                          {n.type === "comment" && " comentou a tua publicação"}
+                          {n.type === "like"    && " gostou da tua publicação"}
+                          {n.type === "follow"  && " começou a seguir-te"}
+                        </p>
+                        <p className="font-mono text-[9px] text-ink/40 mt-0.5 tracking-[0.1em]">
+                          {timeAgo(n.createdAt)}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Compose */}
         <ComposeBox
           authorInitials={authorInitials}
           authorBg={authorBg}
+          authorAvatarUrl={user?.image}
           userEmail={user?.email ?? null}
           onPosted={() => loadPage(1, true)}
         />
@@ -1013,25 +1101,27 @@ export default function FeedPage() {
       <aside className="hidden xl:flex flex-col gap-5 self-start sticky top-24">
 
         {/* Trending */}
-        <div className="border border-ink/10 p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={13} className="text-coral" strokeWidth={2} />
-            <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-ink/60">Em destaque</span>
-          </div>
-          <div className="space-y-2">
-            {TRENDING.map((t, i) => (
-              <div key={t.tag} className="flex items-center justify-between group cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <span className="font-display font-black text-xs text-coral w-4">{i + 1}</span>
-                  <span className="font-mono text-xs text-ink/70 group-hover:text-ink transition-colors">
-                    #{t.tag}
-                  </span>
+        {trending.length > 0 && (
+          <div className="border border-ink/10 p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp size={13} className="text-coral" strokeWidth={2} />
+              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-ink/60">Em destaque</span>
+            </div>
+            <div className="space-y-2">
+              {trending.map((t, i) => (
+                <div key={t.tag} className="flex items-center justify-between group cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <span className="font-display font-black text-xs text-coral w-4">{i + 1}</span>
+                    <span className="font-mono text-xs text-ink/70 group-hover:text-ink transition-colors">
+                      #{t.tag}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] text-ink/30">{fmt(t.count)}</span>
                 </div>
-                <span className="font-mono text-[9px] text-ink/30">{fmt(t.count)}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Membros recentes */}
         {activeMembers.length > 0 && (

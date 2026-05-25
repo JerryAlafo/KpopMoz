@@ -73,17 +73,18 @@ function EventCard({
 export default function MeusEventosPage() {
   const [upcomingRegistered, setUpcomingRegistered] = useState<EventItem[]>([]);
   const [pastEvents, setPastEvents] = useState<EventItem[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   useEffect(() => {
-    fetch("/api/events", { cache: "no-store" })
-      .then((r) => r.ok ? r.json() : [])
-      .then((data) => { if (Array.isArray(data)) setUpcomingRegistered(data.slice(0, 3)); })
-      .catch(() => {});
-
+    setLoadingEvents(true);
     fetch("/api/conta/eventos", { cache: "no-store" })
-      .then((r) => r.ok ? r.json() : [])
-      .then((data) => { if (Array.isArray(data)) setPastEvents(data); })
-      .catch(() => {});
+      .then((r) => r.ok ? r.json() : { upcoming: [], past: [] })
+      .then((data) => {
+        setUpcomingRegistered(Array.isArray(data.upcoming) ? data.upcoming : []);
+        setPastEvents(Array.isArray(data.past) ? data.past : []);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingEvents(false));
   }, []);
 
   return (
@@ -111,8 +112,10 @@ export default function MeusEventosPage() {
           </Link>
         </div>
         <div className="space-y-3">
-          {upcomingRegistered.length === 0 ? (
+          {loadingEvents ? (
             <p className="font-mono text-xs text-ink/30 tracking-[0.15em] uppercase">A carregar...</p>
+          ) : upcomingRegistered.length === 0 ? (
+            <p className="font-mono text-xs text-ink/40 tracking-[0.15em] uppercase">Ainda não estás inscrito em eventos.</p>
           ) : upcomingRegistered.map((event) => (
             <EventCard
               key={event.id}
@@ -137,8 +140,10 @@ export default function MeusEventosPage() {
           Histórico
         </h2>
         <div className="space-y-3">
-          {pastEvents.length === 0 ? (
-            <p className="font-mono text-xs text-ink/30 tracking-[0.15em] uppercase">Nenhum evento anterior.</p>
+          {loadingEvents ? (
+            <p className="font-mono text-xs text-ink/30 tracking-[0.15em] uppercase">A carregar...</p>
+          ) : pastEvents.length === 0 ? (
+            <p className="font-mono text-xs text-ink/40 tracking-[0.15em] uppercase">Nenhum evento anterior.</p>
           ) : pastEvents.map((event) => (
             <EventCard
               key={event.id}

@@ -89,7 +89,7 @@ export default function OnboardingPage() {
       }
       // Força refresh da session para actualizar onboardingComplete
       await update();
-      router.replace("/conta");
+      router.replace("/conta/feed");
     } catch {
       setError("Erro de ligação. Tenta novamente.");
     } finally {
