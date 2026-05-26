@@ -44,7 +44,7 @@ export async function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-end">
           <div className="lg:col-span-8">
             <h1 className="font-display font-bold tracking-[-0.02em] leading-[0.88]"
-                style={{ fontSize: "clamp(2.75rem, 11vw, 11rem)" }}>
+              style={{ fontSize: "clamp(2.75rem, 11vw, 11rem)" }}>
               O coração do{" "}
               <span className="relative inline-block">
                 <span className="text-coral italic">K-POP</span>
@@ -89,7 +89,7 @@ export async function Hero() {
         <div className="mt-12 lg:mt-20 grid grid-cols-2 lg:grid-cols-4 border-t border-ink/15 border-b border-ink/15 divide-y lg:divide-y-0 lg:divide-x divide-ink/15">
           {[
             { num: membersNum, label: "Membros activos", Icon: Users },
-            { num: eventsNum, label: "Eventos desde 2020", Icon: Calendar },
+            { num: eventsNum, label: "Eventos activos", Icon: Calendar },
             { num: "3", label: "Festivais com a Embaixada", Icon: Zap },
             { num: "12+", label: "Grupos de cover dance", Icon: Users },
           ].map(({ num, label, Icon }, i) => (
