@@ -67,9 +67,143 @@ interface AdminStats {
   activeReports: number;
   activeEvents: number;
   activity: { day: string; posts: number }[];
+  monthlyActivity?: { day: string; posts: number }[];
+  membersByWeek?: { week: string; count: number }[];
 }
 
-/* ── Mock estático só para o gráfico de actividade ── */
+/* ── Componentes de gráfico ───────────────────────── */
+
+/* 1. Barras verticais com trilho — posts semanais */
+function WeeklyBarsChart({ data }: { data: { day: string; posts: number }[] }) {
+  const max = Math.max(1, ...data.map((d) => d.posts));
+  return (
+    <div className="flex items-end gap-2">
+      {data.map((a) => (
+        <div key={a.day} className="flex-1 flex flex-col items-center gap-2">
+          <span className="font-mono tabular-nums text-[9px] text-ink/30">{a.posts || ""}</span>
+          <div className="relative w-full border border-ink/10 bg-ink/[0.025]" style={{ height: 64 }}>
+            <div
+              className="absolute bottom-0 left-0 right-0 bg-coral transition-all duration-500"
+              style={{ height: a.posts === 0 ? 0 : `${(a.posts / max) * 100}%` }}
+            />
+          </div>
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink/40">{a.day}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* 2. Linha SVG com área — posts mensais */
+function MonthlyLineChart({ data }: { data: { day: string; posts: number }[] }) {
+  if (!data.length) return <div className="h-20 bg-ink/[0.02] border border-ink/8" />;
+  const vals = data.map((d) => d.posts);
+  const max = Math.max(1, ...vals);
+  const pts = vals.map((v, i) => [
+    parseFloat(((i / (vals.length - 1)) * 100).toFixed(2)),
+    parseFloat((100 - 8 - (v / max) * 76).toFixed(2)),
+  ]);
+  const linePath = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x} ${y}`).join(" ");
+  const areaPath = `${linePath} L ${pts[pts.length - 1][0]} 100 L 0 100 Z`;
+  const labels = data.filter((_, i) => i % 7 === 0 || i === data.length - 1);
+  return (
+    <div>
+      <svg viewBox="0 0 100 100" className="w-full" style={{ height: 72 }} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3a5cff" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#3a5cff" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#areaGrad)" />
+        <path d={linePath} fill="none" stroke="#3a5cff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <div className="flex justify-between mt-1.5">
+        {labels.map((d) => (
+          <span key={d.day} className="font-mono text-ink/30" style={{ fontSize: 8 }}>{d.day}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* 3. Pizza SVG — distribuição de novos membros por semana */
+const PIZZA_COLORS = ["#ff3d68", "#3a5cff", "#ffd23f", "#7af0c8", "#ff3d68", "#3a5cff", "#ffd23f", "#7af0c8"];
+
+function polarToXY(cx: number, cy: number, r: number, deg: number) {
+  const rad = (deg * Math.PI) / 180;
+  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+}
+
+function MemberGrowthChart({ data }: { data: { week: string; count: number }[] }) {
+  const total = data.reduce((s, d) => s + d.count, 0);
+  const active = data.filter((d) => d.count > 0);
+
+  if (total === 0 || active.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4">
+        <svg viewBox="0 0 100 100" className="w-24 h-24 opacity-15">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#0a0a0a" strokeWidth="2" strokeDasharray="5 3" />
+          <circle cx="50" cy="50" r="22" fill="#f5f1ea" />
+        </svg>
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink/30">Sem registos nas últimas 8 semanas</span>
+      </div>
+    );
+  }
+
+  let angle = -90;
+  const slices = active.map((d, i) => {
+    const sweep = (d.count / total) * 360;
+    const start = angle;
+    angle += sweep;
+    return { ...d, start, end: angle, color: PIZZA_COLORS[i % PIZZA_COLORS.length] };
+  });
+
+  return (
+    <div className="flex items-center gap-8">
+      <svg viewBox="0 0 100 100" className="shrink-0 w-32 h-32">
+        {slices.map((s, i) => {
+          const sweep = s.end - s.start;
+          if (sweep >= 359.9) {
+            return <circle key={i} cx="50" cy="50" r="40" fill={s.color} />;
+          }
+          const [x1, y1] = polarToXY(50, 50, 40, s.start);
+          const [x2, y2] = polarToXY(50, 50, 40, s.end);
+          return (
+            <path
+              key={i}
+              d={`M 50 50 L ${x1.toFixed(2)} ${y1.toFixed(2)} A 40 40 0 ${sweep > 180 ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`}
+              fill={s.color}
+            />
+          );
+        })}
+        {/* separadores brancos entre fatias */}
+        {slices.length > 1 && slices.map((s, i) => {
+          const [x, y] = polarToXY(50, 50, 40, s.start);
+          return <line key={i} x1="50" y1="50" x2={x.toFixed(2)} y2={y.toFixed(2)} stroke="#f5f1ea" strokeWidth="1.2" />;
+        })}
+        {/* buraco donut */}
+        <circle cx="50" cy="50" r="22" fill="#f5f1ea" />
+        <text x="50" y="46" textAnchor="middle" fontSize="13" fill="#0a0a0a" fontWeight="700" fontFamily="monospace">{total}</text>
+        <text x="50" y="57" textAnchor="middle" fontSize="5" fill="#0a0a0a" opacity="0.45" fontFamily="monospace" letterSpacing="1">MEMBROS</text>
+      </svg>
+
+      <div className="flex flex-col gap-3">
+        {slices.map((s, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <span className="w-3 h-3 shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/60">{s.week}</span>
+            <span className="font-display font-bold text-sm text-ink tabular-nums">{s.count}</span>
+            <span className="font-mono text-[9px] text-ink/30 tabular-nums">
+              {Math.round((s.count / total) * 100)}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const STATS_LABELS = [
   { label: "Membros", icon: Users, color: "text-blue-600" },
   { label: "Posts hoje", icon: FileText, color: "text-emerald-600" },
@@ -344,8 +478,7 @@ export default function AdminPage() {
   });
 
   const activeReports = reports.filter((r) => !dismissed.includes(r.id));
-  const activity = adminStats?.activity?.length ? adminStats.activity : FALLBACK_ACTIVITY;
-  const maxPosts = Math.max(1, ...activity.map((a) => a.posts));
+  const activity = adminStats?.activity ?? FALLBACK_ACTIVITY;
   const memberCount = members.length || adminStats?.members;
   const eventCount = events.length || adminStats?.activeEvents;
 
@@ -415,25 +548,39 @@ export default function AdminPage() {
             ))}
           </div>
 
-          <div className="border border-ink/10 p-5">
-            <div className="flex items-center gap-2 mb-5">
-              <TrendingUp size={14} className="text-coral" strokeWidth={2} />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">
-                Actividade — últimos 7 dias
-              </span>
-            </div>
-            <div className="flex items-end gap-2 h-28">
-              {activity.map((a) => (
-                <div key={a.day} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full bg-coral/80 hover:bg-coral transition-colors"
-                    style={{ height: `${(a.posts / maxPosts) * 100}%` }}
-                    title={`${a.posts} posts`}
-                  />
-                  <span className="font-mono text-[9px] text-ink/40">{a.day}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="border border-ink/10 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={14} className="text-coral" strokeWidth={2} />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Posts — 7 dias</span>
                 </div>
-              ))}
+                <span className="font-mono text-[9px] text-ink/30">barras</span>
+              </div>
+              <WeeklyBarsChart data={activity} />
             </div>
+
+            <div className="border border-ink/10 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={14} className="text-electric" strokeWidth={2} />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Posts — 30 dias</span>
+                </div>
+                <span className="font-mono text-[9px] text-ink/30">linha</span>
+              </div>
+              <MonthlyLineChart data={adminStats?.monthlyActivity ?? []} />
+            </div>
+          </div>
+
+          <div className="border border-ink/10 p-5">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Users size={14} className="text-mint" strokeWidth={2} />
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60">Novos membros — 8 semanas</span>
+              </div>
+              <span className="font-mono text-[9px] text-ink/30">pizza</span>
+            </div>
+            <MemberGrowthChart data={adminStats?.membersByWeek ?? []} />
           </div>
 
           {activeReports.length > 0 && (
