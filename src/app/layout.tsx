@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import GuestModeProvider from "@/components/layout/GuestModeProvider";
 import { AuthProvider } from "@/contexts/auth";
 import { SessionProvider } from "next-auth/react";
 
@@ -40,9 +41,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-bone text-ink antialiased font-body">
         <SessionProvider>
           <AuthProvider>
-            <Header />
-            <main>{children}</main>
-            <Footer />
+            <GuestModeProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </GuestModeProvider>
           </AuthProvider>
         </SessionProvider>
       </body>

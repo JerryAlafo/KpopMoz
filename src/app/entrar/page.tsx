@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
+import { enableGuestMode } from "@/lib/guest-mode";
 
 function formatCount(n: number): string {
   if (n >= 1000) return `${Math.floor(n / 1000)} ${(n % 1000).toString().padStart(3, "0")}+`;
@@ -22,6 +23,14 @@ export default function EntrarPage() {
   const [events, setEvents] = useState("...");
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [callbackUrl, setCallbackUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCallbackUrl(params.get("callbackUrl"));
+  }, []);
+
+  const targetUrl = callbackUrl ?? "/conta/feed";
 
   useEffect(() => {
     fetch("/api/stats", { cache: "no-store" })
@@ -45,8 +54,8 @@ export default function EntrarPage() {
       router.replace("/onboarding");
       return;
     }
-    router.replace("/conta/feed");
-  }, [router, session, status]);
+    router.replace(targetUrl);
+  }, [router, session, status, targetUrl]);
 
   async function handleLogin(e: { preventDefault(): void }) {
     e.preventDefault();
@@ -57,7 +66,7 @@ export default function EntrarPage() {
     }
     setLoading(true);
     const res = await signIn("credentials", {
-      email, password, callbackUrl: "/conta/feed", redirect: false,
+      email, password, callbackUrl: targetUrl, redirect: false,
     });
     setLoading(false);
     if (res?.error) {
@@ -65,6 +74,12 @@ export default function EntrarPage() {
     } else if (res?.url) {
       router.push(res.url);
     }
+  }
+
+  function handleGuestMode() {
+    setError("");
+    enableGuestMode();
+    router.push(targetUrl);
   }
 
   return (
@@ -172,6 +187,14 @@ export default function EntrarPage() {
               {loading ? "A entrar…" : "Entrar na KM"}
               {!loading && <ArrowRight size={14} />}
             </button>
+
+            <button
+              type="button"
+              onClick={handleGuestMode}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 border border-ink/20 hover:border-ink font-mono text-xs uppercase tracking-[0.2em] text-ink/50 hover:text-ink transition-colors"
+            >
+              <Eye size={14} /> Continuar como convidado
+            </button>
           </form>
 
           {/* Separador Google */}
@@ -183,7 +206,7 @@ export default function EntrarPage() {
 
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: "/conta/feed" })}
+            onClick={() => signIn("google", { callbackUrl: targetUrl })}
             className="w-full flex items-center justify-center gap-3 px-6 py-3.5 border border-ink/20 hover:border-ink font-mono text-sm uppercase tracking-[0.2em] text-ink/70 hover:text-ink transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>

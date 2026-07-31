@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import type { FeedPost } from "@/types";
 import {
@@ -8,6 +8,7 @@ import {
   Mic2, Trophy, ArrowUpRight, Send, Loader2, ChevronDown, Trash2,
   Flag, UserPlus, UserCheck,
 } from "lucide-react";
+import { useGuestMode } from "@/components/layout/GuestModeProvider";
 
 /* ── helpers ─────────────────────────────────────────── */
 function timeAgo(iso: string) {
@@ -48,6 +49,15 @@ export function PostCard({
   onFollowToggle: (email: string, nowFollowing: boolean) => void;
   onDeleted: (id: string) => void;
 }) {
+  const { isGuest, requestLogin } = useGuestMode();
+
+  const requireLogin = useCallback((detail?: { title?: string; message?: string; returnTo?: string }) => {
+    if (!isGuest) return true;
+
+    requestLogin(detail);
+    return false;
+  }, [isGuest, requestLogin]);
+
   const [liked,        setLiked]        = useState(post.likedByMe ?? false);
   const [likeCount,    setLikeCount]    = useState(post.reactions[0]?.count ?? 0);
   const [likeBusy,     setLikeBusy]     = useState(false);
@@ -74,7 +84,10 @@ export function PostCard({
   const [postingComment, setPostingComment] = useState(false);
 
   async function handleLike() {
-    if (!userEmail || likeBusy) return;
+    if (!requireLogin({
+      title: "Like protegido",
+      message: "Entra na tua conta para guardar gostos e interagir com publicacoes.",
+    }) || likeBusy) return;
     const prev = { liked, count: likeCount };
     setLiked((v) => !v);
     setLikeCount((n) => (liked ? n - 1 : n + 1));
@@ -128,7 +141,10 @@ export function PostCard({
   }
 
   async function handleFollow() {
-    if (!userEmail || followBusy || userEmail === post.author.email) return;
+    if (!requireLogin({
+      title: "Seguir requer login",
+      message: "Entra na tua conta para seguir membros e montar o teu feed.",
+    }) || followBusy || userEmail === post.author.email) return;
     const prev = following;
     setFollowing((v) => !v);
     setFollowBusy(true);
@@ -164,7 +180,10 @@ export function PostCard({
 
   async function handleReport(e: { preventDefault(): void }) {
     e.preventDefault();
-    if (!userEmail || reporting || reported) return;
+    if (!requireLogin({
+      title: "Denuncia protegida",
+      message: "Entra na tua conta para denunciar conteudo.",
+    }) || reporting || reported) return;
     const details = reportDetails.trim();
     const reason = reportReason === "Outro"
       ? details
@@ -213,7 +232,10 @@ export function PostCard({
 
   async function handlePostComment(e: { preventDefault(): void }) {
     e.preventDefault();
-    if (!commentText.trim() || !userEmail || postingComment) return;
+    if (!requireLogin({
+      title: "Comentario protegido",
+      message: "Entra na tua conta para comentar publicacoes.",
+    }) || !commentText.trim() || postingComment) return;
     setPostingComment(true);
     try {
       const res = await fetch(`/api/feed/${post.id}/comments`, {
@@ -265,7 +287,7 @@ export function PostCard({
                 {post.author.name}
               </Link>
               {/* Botão seguir (só para outros utilizadores) */}
-              {userEmail && userEmail !== post.author.email && (
+              {userEmail !== post.author.email && (
                 <button
                   onClick={handleFollow}
                   disabled={followBusy}
@@ -339,7 +361,7 @@ export function PostCard({
         <div className="flex items-center gap-0.5">
           <button
             onClick={handleLike}
-            disabled={!userEmail || likeBusy}
+            disabled={likeBusy}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 font-mono text-xs transition-colors border disabled:cursor-default ${
               liked
                 ? "border-coral text-coral bg-coral/5"
@@ -382,7 +404,7 @@ export function PostCard({
             </span>
           </button>
 
-          {userEmail && userEmail !== post.author.email && (
+          {userEmail !== post.author.email && (
             <button
               onClick={() => setShowReportModal(true)}
               disabled={reported}
@@ -553,31 +575,33 @@ export function PostCard({
           )}
 
           {/* Campo para novo comentário */}
-          {userEmail ? (
-            <form onSubmit={handlePostComment} className="flex gap-2 px-4 py-3 border-t border-ink/[0.08]">
-              <input
-                type="text"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Escreve um comentário…"
-                maxLength={500}
-                className="flex-1 min-w-0 bg-transparent border border-ink/15 focus:border-ink px-3 py-2 font-mono text-xs placeholder:text-ink/25 focus:outline-none transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={!commentText.trim() || postingComment}
-                className="flex items-center gap-1.5 px-3 py-2 bg-ink text-bone font-mono text-[10px] uppercase tracking-[0.15em] border border-ink hover:bg-ink/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
-              >
-                {postingComment
-                  ? <Loader2 size={10} className="animate-spin" />
-                  : <Send size={10} strokeWidth={2} />}
-              </button>
-            </form>
-          ) : (
-            <div className="px-4 py-3 border-t border-ink/[0.08] font-mono text-[10px] text-ink/30 text-center">
-              <Link href="/entrar" className="text-coral hover:underline">Inicia sessão</Link> para comentar.
-            </div>
-          )}
+          <form onSubmit={handlePostComment} className="flex gap-2 px-4 py-3 border-t border-ink/[0.08]">
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onFocus={() => {
+                if (isGuest) {
+                  requestLogin({
+                    title: "Comentario protegido",
+                    message: "Entra na tua conta para comentar publicacoes.",
+                  })
+                }
+              }}
+              placeholder={isGuest ? "Entra para comentar…" : "Escreve um comentário…"}
+              maxLength={500}
+              className="flex-1 min-w-0 bg-transparent border border-ink/15 focus:border-ink px-3 py-2 font-mono text-xs placeholder:text-ink/25 focus:outline-none transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={!commentText.trim() || postingComment}
+              className="flex items-center gap-1.5 px-3 py-2 bg-ink text-bone font-mono text-[10px] uppercase tracking-[0.15em] border border-ink hover:bg-ink/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+            >
+              {postingComment
+                ? <Loader2 size={10} className="animate-spin" />
+                : <Send size={10} strokeWidth={2} />}
+            </button>
+          </form>
         </div>
       )}
     </article>

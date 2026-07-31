@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, User, Calendar, Heart, Rss, ShieldCheck, LogOut, ChevronRight, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
+import { useGuestMode } from "@/components/layout/GuestModeProvider";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -17,13 +18,19 @@ const navLinks = [
 
 export default function ContaLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, authenticated, logout } = useAuth();
+  const { isGuest } = useGuestMode();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (loading) return;
-    if (!authenticated) {
+    if (!authenticated && !isGuest) {
       router.replace("/entrar");
+      return;
+    }
+    if (isGuest && pathname !== "/conta/feed") {
+      const next = encodeURIComponent(`${pathname}${window.location.search}${window.location.hash}`);
+      router.replace(`/conta/feed?loginRequired=1&next=${next}`);
       return;
     }
     if (user && user.onboardingComplete === false) {
@@ -32,9 +39,22 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
     if (user && user.isBanned) {
       router.replace("/banido");
     }
-  }, [authenticated, loading, user, router]);
+  }, [authenticated, loading, user, router, isGuest, pathname]);
 
-  if (loading || !user) return null;
+  if (loading) return null;
+
+  // Modo convidado: só o feed, sem sidebar privada
+  if (isGuest) {
+    return (
+      <div className="min-h-screen bg-bone">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-12 pb-24 lg:pb-12">
+          {children}
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   const initials = user.name.split(" ").map((n) => n[0]).slice(0, 2).join("");
 

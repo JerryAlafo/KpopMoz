@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { enableGuestMode } from "@/lib/guest-mode";
 
 function GoogleIcon() {
   return (
@@ -152,6 +153,18 @@ export function SignUpCard() {
       >
         <GoogleIcon />
         Continuar com Google
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          enableGuestMode();
+          router.push("/conta/feed");
+        }}
+        className="mt-3 w-full flex items-center justify-center gap-3 px-4 py-3 border border-bone/20 hover:border-bone/50 font-mono text-xs uppercase tracking-[0.2em] text-bone/60 hover:text-bone transition-colors"
+      >
+        <Eye size={14} />
+        Continuar como convidado
       </button>
 
       <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-bone/40 mt-4 text-center">

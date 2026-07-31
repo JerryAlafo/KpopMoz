@@ -5,9 +5,10 @@ import Link from "next/link";
 import type { FeedPost, EventItem } from "@/types";
 import {
   ImageIcon, Send, TrendingUp, Users, UserPlus, UserCheck, Bell, X, Loader2,
-  Calendar, Check,
+  Calendar, Check, Lock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
+import { useGuestMode } from "@/components/layout/GuestModeProvider";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { PostCard } from "@/components/feed/PostCard";
 
@@ -375,6 +376,7 @@ type Member = { email: string; name: string; username: string; fandom: string; i
 
 export default function FeedPage() {
   const { user } = useAuth();
+  const { isGuest, requestLogin } = useGuestMode();
 
   const [posts, setPosts]             = useState<FeedPost[]>([]);
   const [loading, setLoading]         = useState(false);
@@ -495,34 +497,36 @@ export default function FeedPage() {
             <h1 className="font-display font-bold text-3xl tracking-tight">
               Feed<span className="text-coral">.</span>
             </h1>
-            <button
-              onClick={() => {
-                const opening = !showNotifPanel;
-                setShowNotifPanel(opening);
-                if (opening) {
-                  setLoadingNotifs(true);
-                  setNotifications([]);
-                  fetch("/api/notifications")
-                    .then((r) => r.ok ? r.json() : [])
-                    .then((d) => { if (Array.isArray(d)) setNotifications(d); })
-                    .catch(() => {})
-                    .finally(() => setLoadingNotifs(false));
-                } else {
-                  if (unreadNotifs > 0) {
-                    setUnreadNotifs(0);
-                    fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
+            {!isGuest && (
+              <button
+                onClick={() => {
+                  const opening = !showNotifPanel;
+                  setShowNotifPanel(opening);
+                  if (opening) {
+                    setLoadingNotifs(true);
+                    setNotifications([]);
+                    fetch("/api/notifications")
+                      .then((r) => r.ok ? r.json() : [])
+                      .then((d) => { if (Array.isArray(d)) setNotifications(d); })
+                      .catch(() => {})
+                      .finally(() => setLoadingNotifs(false));
+                  } else {
+                    if (unreadNotifs > 0) {
+                      setUnreadNotifs(0);
+                      fetch("/api/notifications", { method: "PATCH" }).catch(() => {});
+                    }
                   }
-                }
-              }}
-              className={`relative flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors ${showNotifPanel ? "text-coral" : unreadNotifs > 0 ? "text-coral hover:text-coral/70" : "text-ink/40 hover:text-ink"}`}
-            >
-              <Bell size={14} strokeWidth={2} />
-              {unreadNotifs > 0 && (
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-coral text-bone font-mono text-[8px] rounded-full flex items-center justify-center leading-none">
-                  {unreadNotifs > 9 ? "9+" : unreadNotifs}
-                </span>
-              )}
-            </button>
+                }}
+                className={`relative flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors ${showNotifPanel ? "text-coral" : unreadNotifs > 0 ? "text-coral hover:text-coral/70" : "text-ink/40 hover:text-ink"}`}
+              >
+                <Bell size={14} strokeWidth={2} />
+                {unreadNotifs > 0 && (
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-coral text-bone font-mono text-[8px] rounded-full flex items-center justify-center leading-none">
+                    {unreadNotifs > 9 ? "9+" : unreadNotifs}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Painel de notificações */}
@@ -576,13 +580,15 @@ export default function FeedPage() {
         </div>
 
         {/* Compose */}
-        <ComposeBox
-          authorInitials={authorInitials}
-          authorBg={authorBg}
-          authorAvatarUrl={user?.image}
-          userEmail={user?.email ?? null}
-          onPosted={() => loadPage(1, true)}
-        />
+        {!isGuest && (
+          <ComposeBox
+            authorInitials={authorInitials}
+            authorBg={authorBg}
+            authorAvatarUrl={user?.image}
+            userEmail={user?.email ?? null}
+            onPosted={() => loadPage(1, true)}
+          />
+        )}
 
         {/* Filtros por fandom */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -605,15 +611,26 @@ export default function FeedPage() {
         <div className="flex border-b border-ink/10">
           {(["geral", "seguindo", "anuncios"] as Tab[]).map((t) => {
             const labels: Record<Tab, string> = { geral: "Geral", seguindo: "A seguir", anuncios: "Anúncios" };
+            const isLocked = isGuest && t !== "geral";
             return (
               <button
                 key={t}
-                onClick={() => setTab(t)}
+                onClick={() => {
+                  if (isLocked) {
+                    requestLogin({
+                      title: "Acesso restrito",
+                      message: "Entra na tua conta para ver os teus seguidores e anuncios.",
+                    });
+                    return;
+                  }
+                  setTab(t);
+                }}
                 className={`px-5 py-3 font-mono text-[10px] uppercase tracking-[0.2em] border-b-2 -mb-px transition-all ${
                   tab === t ? "border-coral text-ink" : "border-transparent text-ink/40 hover:text-ink"
                 }`}
               >
                 {labels[t]}
+                {isLocked && <Lock size={10} className="inline-block ml-1.5 text-coral" strokeWidth={2} />}
               </button>
             );
           })}
