@@ -328,9 +328,13 @@ export function PostCard({
       )}
 
       {post.imageUrl && (
-        <div className="mx-4 mb-3">
+        <div className="mx-4 mb-3 bg-ink/5 border border-ink/5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.imageUrl} alt="Imagem do post" className="w-full max-h-96 object-cover" />
+          <img
+            src={post.imageUrl}
+            alt="Imagem do post"
+            className="w-full block max-h-[30rem] lg:max-h-[27.5rem] object-contain"
+          />
         </div>
       )}
       {!post.imageUrl && post.image && (

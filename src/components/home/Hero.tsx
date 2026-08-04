@@ -43,8 +43,10 @@ export async function Hero() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-end">
           <div className="lg:col-span-8">
-            <h1 className="font-display font-bold tracking-[-0.02em] leading-[0.88]"
-              style={{ fontSize: "clamp(2.75rem, 11vw, 11rem)" }}>
+            <h1
+              className="font-display font-bold tracking-[-0.02em] leading-[0.88]"
+              style={{ fontSize: "clamp(2.75rem, 11vw, 11rem)" }}
+            >
               O coração do{" "}
               <span className="relative inline-block">
                 <span className="text-coral italic">K-POP</span>
@@ -64,14 +66,16 @@ export async function Hero() {
                 </svg>
               </span>
               <br />
-              bate em<br className="hidden sm:block" /> Moçambique.
+              bate em
+              <br className="hidden sm:block" /> Moçambique.
             </h1>
           </div>
 
           <div className="lg:col-span-4 lg:pb-4">
             <p className="text-base sm:text-lg leading-relaxed text-ink/75 max-w-md">
-              Comunidade desde 2020. Encontros mensais, festivais com a Embaixada da
-              Coreia, talentos locais a crescer. Agora num só lugar, com a tua cor.
+              Comunidade desde 2020. Encontros mensais, festivais com a
+              Embaixada da Coreia, talentos locais a crescer. Agora num só
+              lugar, com a tua cor.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <Link href="/comunidade" className="btn-brutal">

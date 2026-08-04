@@ -254,7 +254,7 @@ function ComposeBox({
               <img
                 src={imagePreview}
                 alt="Preview"
-                className={`max-h-52 max-w-full object-cover border transition-opacity ${
+                className={`max-h-52 max-w-full object-contain bg-ink/5 border transition-opacity ${
                   uploading
                     ? "opacity-40 border-ink/10"
                     : uploadFailed
