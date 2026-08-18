@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { enableGuestMode } from "@/lib/guest-mode";
 
 function GoogleIcon() {
@@ -33,6 +33,13 @@ export function SignUpCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/conta/feed");
+    }
+  }, [status, router]);
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();

@@ -14,7 +14,7 @@ export async function GET() {
   const { data } = await db
     .from("event_registrations")
     .select("event_id, events!event_id(id, slug, title, date, start_time, end_time, location, city, is_free, price, cover_bg)")
-    .eq("user_email", session.user.email)
+    .eq("user_email", session.user.email!.toLowerCase())
     .order("created_at", { ascending: false });
 
   const all = (data ?? [])
