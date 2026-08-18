@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   // Passo 1: obter posts (sem join — evita erro de FK em falta)
   let query = db
     .from("feed_posts")
-    .select("id, author_email, type, content, tags, image_url, reactions, comments, published_at", { count: "exact" })
+    .select("id, author_email, type, content, tags, image_url, reactions, comments, shares, published_at, repost_of_id", { count: "exact" })
     .order("published_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -83,6 +83,55 @@ export async function GET(req: Request) {
     likedIds = new Set((likes ?? []).map((l) => l.post_id));
   }
 
+  // Passo 4: enriquecer reposts — buscar posts originais
+  const repostIds = [...new Set((posts ?? []).map((p) => p.repost_of_id).filter(Boolean))];
+  const repostMap: Record<string, any> = {};
+
+  if (repostIds.length > 0) {
+    const { data: reposts } = await db
+      .from("feed_posts")
+      .select("id, author_email, type, content, tags, image_url, reactions, comments, shares, published_at, repost_of_id")
+      .in("id", repostIds);
+
+    const repostAuthorEmails = [...new Set((reposts ?? []).map((r) => r.author_email))];
+    const repostProfileMap: Record<string, any> = {};
+
+    if (repostAuthorEmails.length > 0) {
+      const { data: rpProfiles } = await db
+        .from("profiles")
+        .select("email, name, username, fandoms, avatar_url")
+        .in("email", repostAuthorEmails);
+      for (const p of rpProfiles ?? []) {
+        repostProfileMap[p.email] = p;
+      }
+    }
+
+    for (const r of reposts ?? []) {
+      const rp = repostProfileMap[r.author_email];
+      const rFandom: string = rp?.fandoms?.[0] ?? "";
+      repostMap[r.id] = {
+        id:         r.id,
+        type:       r.type,
+        author: {
+          name:      rp?.name       ?? "Utilizador",
+          username:  rp?.username   ?? "@utilizador",
+          email:     r.author_email,
+          initials:  initials(rp?.name ?? "KM"),
+          avatarBg:  FANDOM_BG[rFandom] ?? "linear-gradient(135deg,#1c1c1c,#7B65C8)",
+          avatarUrl: rp?.avatar_url ?? null,
+          fandom:    rFandom || undefined,
+        },
+        publishedAt: r.published_at,
+        content:     r.content || undefined,
+        tags:        r.tags ?? [],
+        reactions:   [{ emoji: "❤️", count: r.reactions }],
+        comments:    r.comments,
+        shares:      r.shares ?? 0,
+        imageUrl:    r.image_url ?? undefined,
+      };
+    }
+  }
+
   const mapped = (posts ?? []).map((p) => {
     const profile = profileMap[p.author_email];
     const fandom: string = profile?.fandoms?.[0] ?? "";
@@ -103,8 +152,11 @@ export async function GET(req: Request) {
       tags:        p.tags ?? [],
       reactions:   [{ emoji: "❤️", count: p.reactions }],
       comments:    p.comments,
+      shares:      p.shares ?? 0,
       imageUrl:    p.image_url ?? undefined,
       likedByMe:   likedIds.has(p.id),
+      repostOfId:  p.repost_of_id ?? undefined,
+      repostOf:    p.repost_of_id ? (repostMap[p.repost_of_id] ?? null) : undefined,
     };
   });
 

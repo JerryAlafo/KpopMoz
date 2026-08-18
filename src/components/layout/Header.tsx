@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/auth";
 const publicNavItems = [
   { label: "Notícias",    href: "/noticias",    k: "01" },
   { label: "Eventos",     href: "/eventos",     k: "02" },
-  { label: "Comunidade",  href: "/comunidade",  k: "03" },
+  { label: "Comunidade",  href: "/",                  k: "03" },
   { label: "Talentos",    href: "/talentos",    k: "04" },
   { label: "Artistas",    href: "/artistas",    k: "05" },
   { label: "Marketplace", href: "/marketplace", k: "06" },
@@ -19,7 +19,7 @@ const publicNavItems = [
 ];
 
 const privateNavItems = [
-  { label: "Feed",        href: "/conta/feed",  k: "01" },
+  { label: "Feed",        href: "/feed",        k: "01" },
   { label: "Notícias",    href: "/noticias",    k: "02" },
   { label: "Eventos",     href: "/eventos",     k: "03" },
   { label: "Artistas",    href: "/artistas",    k: "04" },
@@ -74,8 +74,9 @@ export function Header() {
   // Esconde header nas páginas de auth e onboarding
   if (pathname === "/entrar" || pathname === "/onboarding") return null;
 
-  // Esconde header nas páginas /conta/* (têm sidebar própria)
-  if (pathname.startsWith("/conta")) return null;
+  // Esconde header nas páginas protegidas (têm sidebar própria)
+  const PROTECTED_PREFIXES = ["/feed", "/dashboard", "/eventos", "/noticias", "/artistas", "/aprender", "/marketplace", "/musicas", "/talentos", "/pesquisa", "/post", "/perfil", "/favoritos", "/admin"];
+  if (PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
 
   return (
     <>
@@ -85,8 +86,8 @@ export function Header() {
           scrolled ? "bg-bone/90 backdrop-blur-md border-b border-ink/10" : "bg-transparent"
         )}
       >
-        {/* Barra de contexto para utilizadores autenticados (só em páginas públicas) */}
-        {user && (
+        {/* Barra de contexto para utilizadores autenticados (só em páginas públicas, exceto landing) */}
+        {user && pathname !== "/" && (
           <div className="bg-ink text-bone border-b border-bone/10">
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between h-8">
               <div className="flex items-center gap-4">
@@ -94,19 +95,19 @@ export function Header() {
                   Plataforma
                 </span>
                 <Link
-                  href="/conta/feed"
+                  href="/feed"
                   className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.15em] uppercase text-bone/70 hover:text-coral transition-colors"
                 >
                   <Rss size={9} strokeWidth={2} /> Feed
                 </Link>
                 <Link
-                  href="/conta"
+                  href="/dashboard"
                   className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.15em] uppercase text-bone/70 hover:text-coral transition-colors"
                 >
                   <LayoutDashboard size={9} strokeWidth={2} /> Dashboard
                 </Link>
                 <Link
-                  href="/conta/eventos"
+                  href="/eventos"
                   className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.15em] uppercase text-bone/70 hover:text-coral transition-colors"
                 >
                   Os meus eventos
@@ -125,7 +126,7 @@ export function Header() {
             light ? "text-ink" : "text-bone"
           )}>
             {/* Logo */}
-            <Link href={user ? "/conta/feed" : "/"} className="flex items-center gap-2.5 group">
+            <Link href={user ? "/feed" : "/"} className="flex items-center gap-2.5 group">
               <Image
                 src="/favicon.png"
                 alt="KPOP.MZ"
@@ -147,21 +148,23 @@ export function Header() {
               </div>
             </Link>
 
-            {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "link-underline font-mono text-xs uppercase tracking-widest hover:text-coral transition-colors",
-                    item.href === "/conta/feed" && "text-coral font-semibold"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            {/* Desktop nav — oculto na landing page */}
+            {pathname !== "/" && (
+              <nav className="hidden lg:flex items-center gap-8">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "link-underline font-mono text-xs uppercase tracking-widest hover:text-coral transition-colors",
+                      item.href === "/feed" && "text-coral font-semibold"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-3">
@@ -196,19 +199,19 @@ export function Header() {
                         <div className="font-mono text-[9px] text-ink/40">{user.username}</div>
                       </div>
                       <Link
-                        href="/conta/feed"
+                        href="/feed"
                         className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10"
                       >
                         <Rss size={13} /> Feed
                       </Link>
                       <Link
-                        href="/conta"
+                        href="/dashboard"
                         className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10"
                       >
                         <LayoutDashboard size={13} /> Dashboard
                       </Link>
                       <Link
-                        href="/conta/perfil"
+                        href="/perfil"
                         className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10"
                       >
                         <User size={13} /> Perfil
@@ -230,7 +233,7 @@ export function Header() {
                   >
                     Entrar
                   </Link>
-                  <Link href="/comunidade" className="btn-brutal">
+                  <Link href="/entrar" className="btn-brutal">
                     Criar conta
                   </Link>
                 </div>
@@ -288,14 +291,14 @@ export function Header() {
           {user && (
             <div className="px-5 py-4 border-b border-ink/10 bg-ink/5 flex gap-3">
               <Link
-                href="/conta/feed"
+                href="/feed"
                 onClick={() => setOpen(false)}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-coral text-bone font-mono text-[10px] uppercase tracking-[0.15em]"
               >
                 <Rss size={12} /> Feed
               </Link>
               <Link
-                href="/conta"
+                href="/dashboard"
                 onClick={() => setOpen(false)}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-ink font-mono text-[10px] uppercase tracking-[0.15em]"
               >
@@ -304,28 +307,31 @@ export function Header() {
             </div>
           )}
 
-          <nav className="px-5 py-6">
-            {publicNavItems.map((item, i) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="group flex items-baseline gap-4 py-4 border-b border-ink/10 hover:pl-2 transition-all"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <span className="font-mono text-[10px] tracking-[0.25em] text-ink/40 w-8">{item.k}</span>
-                <span className="font-display text-3xl sm:text-4xl font-semibold tracking-tight group-hover:text-coral transition-colors">
-                  {item.label}
-                </span>
-              </Link>
-            ))}
-          </nav>
+          {/* Nav no mobile — oculto na landing page */}
+          {pathname !== "/" && (
+            <nav className="px-5 py-6">
+              {publicNavItems.map((item, i) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="group flex items-baseline gap-4 py-4 border-b border-ink/10 hover:pl-2 transition-all"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                  <span className="font-mono text-[10px] tracking-[0.25em] text-ink/40 w-8">{item.k}</span>
+                  <span className="font-display text-3xl sm:text-4xl font-semibold tracking-tight group-hover:text-coral transition-colors">
+                    {item.label}
+                  </span>
+                </Link>
+              ))}
+            </nav>
+          )}
 
           <div className="px-5 pb-8 mt-4 space-y-3">
             {user ? (
               <>
                 <Link
-                  href="/conta/perfil"
+                  href="/perfil"
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 px-6 py-3.5 border border-ink font-mono text-xs uppercase tracking-[0.15em] font-semibold hover:bg-ink hover:text-bone transition-colors"
                 >
@@ -340,7 +346,7 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link href="/comunidade" onClick={() => setOpen(false)} className="btn-brutal w-full justify-center">
+                <Link href="/entrar" onClick={() => setOpen(false)} className="btn-brutal w-full justify-center">
                   Criar conta
                 </Link>
                 <Link

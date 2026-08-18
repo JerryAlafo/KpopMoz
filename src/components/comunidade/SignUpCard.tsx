@@ -37,7 +37,7 @@ export function SignUpCard() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/conta/feed");
+      router.replace("/feed");
     }
   }, [status, router]);
 
@@ -58,7 +58,7 @@ export function SignUpCard() {
         return;
       }
       const signin = await signIn("credentials", {
-        email, password, callbackUrl: "/conta/feed", redirect: false,
+        email, password, callbackUrl: "/feed", redirect: false,
       });
       if (signin?.url) router.push(signin.url);
     } catch {
@@ -155,7 +155,7 @@ export function SignUpCard() {
 
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/conta/feed" })}
+        onClick={() => signIn("google", { callbackUrl: "/feed" })}
         className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-bone/20 hover:border-bone/50 font-mono text-xs uppercase tracking-[0.2em] text-bone/60 hover:text-bone transition-colors"
       >
         <GoogleIcon />
@@ -166,7 +166,7 @@ export function SignUpCard() {
         type="button"
         onClick={() => {
           enableGuestMode();
-          router.push("/conta/feed");
+          router.push("/feed");
         }}
         className="mt-3 w-full flex items-center justify-center gap-3 px-4 py-3 border border-bone/20 hover:border-bone/50 font-mono text-xs uppercase tracking-[0.2em] text-bone/60 hover:text-bone transition-colors"
       >

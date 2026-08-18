@@ -30,7 +30,7 @@ export default function EntrarPage() {
     setCallbackUrl(params.get("callbackUrl"));
   }, []);
 
-  const targetUrl = callbackUrl ?? "/conta/feed";
+  const targetUrl = callbackUrl ?? "/feed";
 
   useEffect(() => {
     fetch("/api/stats", { cache: "no-store" })
@@ -221,7 +221,7 @@ export default function EntrarPage() {
           <div className="mt-8 pt-8 border-t border-ink/10">
             <p className="font-mono text-xs text-ink/60 text-center">
               Ainda não tens conta?{" "}
-              <Link href="/comunidade" className="text-coral hover:underline">
+              <Link href="/" className="text-coral hover:underline">
                 Criar conta grátis
               </Link>
             </p>

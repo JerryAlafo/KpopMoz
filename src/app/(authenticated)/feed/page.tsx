@@ -35,6 +35,11 @@ const FANDOM_BG: Record<string, string> = {
   ONCE:    "linear-gradient(135deg,#ffd23f,#7af0c8)",
 };
 
+const monthMap: Record<string, string> = {
+  "01": "JAN", "02": "FEV", "03": "MAR", "04": "ABR", "05": "MAI", "06": "JUN",
+  "07": "JUL", "08": "AGO", "09": "SET", "10": "OUT", "11": "NOV", "12": "DEZ",
+};
+
 /* ── tipos ───────────────────────────────────────────── */
 interface NotifItem {
   id: string;
@@ -384,6 +389,7 @@ export default function FeedPage() {
   const [tab, setTab]                 = useState<Tab>("geral");
   const [fandomFilter, setFandomFilter] = useState("Todos");
   const [nextEvent, setNextEvent]     = useState<EventItem | null>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [activeMembers, setActiveMembers] = useState<Member[]>([]);
   const [followingEmails, setFollowingEmails] = useState<Set<string>>(new Set());
   const [unreadNotifs, setUnreadNotifs] = useState(0);
@@ -424,7 +430,12 @@ export default function FeedPage() {
   useEffect(() => {
     fetch("/api/events")
       .then((r) => r.ok ? r.json() : [])
-      .then((d) => { if (Array.isArray(d) && d.length > 0) setNextEvent(d[0]); })
+      .then((d) => {
+        if (Array.isArray(d)) {
+          setUpcomingEvents(d.slice(0, 5));
+          if (d.length > 0) setNextEvent(d[0]);
+        }
+      })
       .catch(() => {});
     fetch("/api/stats/members")
       .then((r) => r.ok ? r.json() : [])
@@ -590,6 +601,56 @@ export default function FeedPage() {
           />
         )}
 
+        {/* Próximos eventos no feed */}
+        {upcomingEvents.length > 0 && tab === "geral" && (
+          <div className="border border-coral/20 bg-coral/5 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Calendar size={13} className="text-coral" strokeWidth={2} />
+                <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-coral font-semibold">
+                  Próximos eventos
+                </span>
+              </div>
+              <Link
+                href="/eventos"
+                className="font-mono text-[9px] tracking-[0.15em] uppercase text-ink/40 hover:text-coral transition-colors"
+              >
+                Ver todos →
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+              {upcomingEvents.map((ev) => {
+                const [, month, day] = ev.date.split("-");
+                const monthLabel = monthMap[month as string] ?? month;
+                return (
+                  <Link
+                    key={ev.id}
+                    href={`/eventos/${ev.slug}`}
+                    className="shrink-0 w-44 border border-ink/10 bg-bone hover:border-ink/25 transition-colors p-3 flex gap-3"
+                  >
+                    <div
+                      className="shrink-0 w-10 h-10 grain flex flex-col items-center justify-center"
+                      style={{ background: ev.coverBg }}
+                    >
+                      <div className="font-mono text-[7px] text-bone/80 leading-none">{monthLabel}</div>
+                      <div className="font-display font-black text-sm text-bone leading-none">{day}</div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-display font-semibold text-xs leading-tight truncate">{ev.title}</div>
+                      <div className="font-mono text-[9px] text-ink/40 mt-0.5">
+                        {ev.location} · {ev.city}
+                      </div>
+                      <div className="font-mono text-[9px] text-ink/30 mt-0.5">
+                        {ev.free ? "Grátis" : `${ev.price} MZN`}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Filtros por fandom */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {FANDOM_FILTERS.map((f) => (
@@ -724,10 +785,10 @@ export default function FeedPage() {
               ))}
             </div>
             <Link
-              href="/comunidade"
+              href="/"
               className="block mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-coral hover:underline"
             >
-              Ver comunidade →
+              Ver início →
             </Link>
           </div>
         )}

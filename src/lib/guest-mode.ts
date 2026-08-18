@@ -11,14 +11,14 @@ export interface LoginRequiredDetail {
 const GUEST_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const GUEST_BLOCKED_PREFIXES = [
-  "/conta/eventos",
-  "/conta/favoritos",
-  "/conta/perfil",
-  "/conta/admin",
+  "/eventos",
+  "/favoritos",
+  "/perfil",
+  "/admin",
   "/onboarding",
 ];
-const GUEST_BLOCKED_EXACT = ["/conta"];
-const GUEST_PUBLIC_EXACT = ["/conta/feed"];
+const GUEST_BLOCKED_EXACT = ["/dashboard"];
+const GUEST_PUBLIC_EXACT = ["/feed"];
 const GUEST_PUBLIC_PREFIXES = ["/post/", "/perfil/"];
 
 function normalizePath(pathname: string) {

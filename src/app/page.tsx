@@ -8,8 +8,8 @@ import { ArtistsSection } from "@/components/home/ArtistsSection";
 import { MarketplaceSection } from "@/components/home/MarketplaceSection";
 import { LearnSection } from "@/components/home/LearnSection";
 import { AboutSection } from "@/components/home/AboutSection";
-import { JoinCTA } from "@/components/home/JoinCTA";
 import { CommunityMoments } from "@/components/comunidade/CommunityMoments";
+import { SignUpSection } from "@/components/home/SignUpSection";
 
 function FeaturedNewsLoading() {
   return (
@@ -75,6 +75,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <SignUpSection />
       <Marquee items={tickerItems} />
       <Suspense fallback={<FeaturedNewsLoading />}>
         <FeaturedNews />
@@ -97,7 +98,6 @@ export default function Home() {
       <MarketplaceSection />
       <LearnSection />
       <AboutSection />
-      <JoinCTA />
     </>
   );
 }

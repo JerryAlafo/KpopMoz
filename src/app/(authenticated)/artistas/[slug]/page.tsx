@@ -205,7 +205,7 @@ export default async function ArtistPage({
                   listening parties e encontros regulares.
                 </p>
                 <Link
-                  href="/comunidade"
+                  href="/eventos/inscricoes"
                   className="mt-4 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] hover:text-coral transition-colors"
                 >
                   Entrar na KM <ArrowUpRight size={13} />

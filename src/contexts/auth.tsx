@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     : null;
 
   function login() {
-    signIn("google", { callbackUrl: "/conta/feed" });
+    signIn("google", { callbackUrl: "/feed" });
   }
 
   function logout() {

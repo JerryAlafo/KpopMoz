@@ -121,9 +121,12 @@ export interface FeedPost {
   link?: { href: string; label: string };
   reactions: { emoji: string; count: number }[];
   comments: number;
+  shares?: number;
   tags?: string[];
   imageUrl?: string;
   likedByMe?: boolean;
+  repostOfId?: string;
+  repostOf?: FeedPost | null;
 }
 
 export interface LearnTopic {

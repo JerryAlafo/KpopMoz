@@ -11,7 +11,7 @@ const linkColumns = [
     links: [
       { label: "Notícias", href: "/noticias" },
       { label: "Eventos", href: "/eventos" },
-      { label: "Comunidade", href: "/comunidade" },
+      { label: "Comunidade", href: "/" },
       { label: "Talentos", href: "/talentos" },
     ],
   },
@@ -46,7 +46,7 @@ export function Footer() {
   const pathname = usePathname();
 
   // Não mostrar footer no feed, entrar e onboarding
-  const hidden = ["/conta/feed", "/entrar", "/onboarding"];
+  const hidden = ["/feed", "/entrar", "/onboarding"];
   if (hidden.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
 
   return (

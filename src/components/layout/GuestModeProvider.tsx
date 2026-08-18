@@ -112,7 +112,7 @@ export default function GuestModeProvider({ children }: { children: React.ReactN
     if (!isGuest || !isGuestBlockedPath(pathname)) return;
 
     const next = encodeURIComponent(currentReturnTo(pathname));
-    router.replace(`/conta/feed?loginRequired=1&next=${next}`);
+    router.replace(`/feed?loginRequired=1&next=${next}`);
   }, [isGuest, pathname, router]);
 
   const goToLogin = useCallback((returnTo?: string) => {

@@ -9,11 +9,11 @@ import { useGuestMode } from "@/components/layout/GuestModeProvider";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Feed",       href: "/conta/feed",      icon: Rss },
-  { label: "Eventos",    href: "/conta/eventos",   icon: Calendar },
-  { label: "Dashboard",  href: "/conta",           icon: LayoutDashboard },
-  { label: "Favoritos",  href: "/conta/favoritos", icon: Heart },
-  { label: "Perfil",     href: "/conta/perfil",    icon: User },
+  { label: "Feed",       href: "/feed",      icon: Rss },
+  { label: "Eventos",    href: "/eventos",   icon: Calendar },
+  { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
+  { label: "Favoritos",  href: "/favoritos", icon: Heart },
+  { label: "Perfil",     href: "/perfil",    icon: User },
 ];
 
 export default function ContaLayout({ children }: { children: React.ReactNode }) {
@@ -28,9 +28,9 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
       router.replace("/entrar");
       return;
     }
-    if (isGuest && pathname !== "/conta/feed") {
+    if (isGuest && pathname !== "/feed") {
       const next = encodeURIComponent(`${pathname}${window.location.search}${window.location.hash}`);
-      router.replace(`/conta/feed?loginRequired=1&next=${next}`);
+      router.replace(`/feed?loginRequired=1&next=${next}`);
       return;
     }
     if (user && user.onboardingComplete === false) {
@@ -128,17 +128,17 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
 
             {user.isAdmin && (
               <Link
-                href="/conta/admin"
+                href="/admin"
                 className={cn(
                   "flex items-center justify-between px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] transition-colors group border border-coral/30",
-                  pathname === "/conta/admin" ? "bg-coral text-bone" : "text-coral hover:bg-coral/5"
+                  pathname === "/admin" ? "bg-coral text-bone" : "text-coral hover:bg-coral/5"
                 )}
               >
                 <span className="flex items-center gap-3">
                   <ShieldCheck size={14} strokeWidth={1.75} />
                   Admin
                 </span>
-                <ChevronRight size={12} className={cn("transition-opacity", pathname === "/conta/admin" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} />
+                <ChevronRight size={12} className={cn("transition-opacity", pathname === "/admin" ? "opacity-100" : "opacity-0 group-hover:opacity-40")} />
               </Link>
             )}
 
@@ -176,13 +176,13 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
         })}
         {user.isAdmin && (
           <Link
-            href="/conta/admin"
+            href="/admin"
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-colors",
-              pathname === "/conta/admin" ? "text-coral" : "text-ink/40 hover:text-ink"
+              pathname === "/admin" ? "text-coral" : "text-ink/40 hover:text-ink"
             )}
           >
-            <Shield size={20} strokeWidth={pathname === "/conta/admin" ? 2.25 : 1.75} className={pathname === "/conta/admin" ? "text-coral" : ""} />
+            <Shield size={20} strokeWidth={pathname === "/admin" ? 2.25 : 1.75} className={pathname === "/admin" ? "text-coral" : ""} />
             <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Admin</span>
           </Link>
         )}

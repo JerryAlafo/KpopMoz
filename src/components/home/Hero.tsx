@@ -78,7 +78,7 @@ export async function Hero() {
               lugar, com a tua cor.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
-              <Link href="/comunidade" className="btn-brutal">
+              <Link href="/entrar" className="btn-brutal">
                 Entrar na KM
                 <ArrowRight size={14} />
               </Link>

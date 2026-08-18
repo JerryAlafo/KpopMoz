@@ -198,7 +198,7 @@ export default async function TalentPage({
                   comunidade K-POP do país.
                 </p>
                 <Link
-                  href="/comunidade"
+                  href="/eventos/inscricoes"
                   className="mt-4 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] hover:text-coral transition-colors"
                 >
                   Entrar na KM <ArrowUpRight size={13} />

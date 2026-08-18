@@ -36,7 +36,7 @@ export function JoinCTA() {
             como és, traz o teu bias, partilha o que fazes.
           </p>
           <div className="mt-8 lg:mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/comunidade" className="btn-brutal">
+            <Link href="/entrar" className="btn-brutal">
               Criar conta
               <ArrowRight size={14} />
             </Link>

@@ -244,7 +244,7 @@ export default function PublicProfilePage() {
                   <div className="font-mono text-xs text-ink/40 mt-0.5">{profile.username}</div>
                 </div>
                 {isOwnProfile ? (
-                  <Link href="/conta/perfil" className="flex items-center gap-2 px-4 py-2 border border-ink font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-ink hover:text-bone transition-colors">
+                  <Link href="/perfil" className="flex items-center gap-2 px-4 py-2 border border-ink font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-ink hover:text-bone transition-colors">
                     <Settings size={12} /> Editar
                   </Link>
                 ) : user ? (

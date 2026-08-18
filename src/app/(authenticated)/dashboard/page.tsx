@@ -46,9 +46,9 @@ export default function ContaDashboard() {
   if (!user) return null;
 
   const stats = [
-    { label: "Eventos inscritos", value: "3", icon: Calendar, href: "/conta/eventos" },
-    { label: "Notícias", value: newsLoading ? "..." : String(latestNews.length), icon: Newspaper, href: "/conta/favoritos" },
-    { label: "Fandoms seguidos", value: String(user.fandoms.length), icon: Zap, href: "/conta/perfil" },
+    { label: "Eventos inscritos", value: "3", icon: Calendar, href: "/eventos" },
+    { label: "Notícias", value: newsLoading ? "..." : String(latestNews.length), icon: Newspaper, href: "/favoritos" },
+    { label: "Fandoms seguidos", value: String(user.fandoms.length), icon: Zap, href: "/perfil" },
     { label: "Notificações", value: "2", icon: Bell, href: "#" },
   ];
 
@@ -88,7 +88,7 @@ export default function ContaDashboard() {
           <h2 className="font-display font-bold text-xl lg:text-2xl tracking-tight">
             Próximos eventos
           </h2>
-          <Link href="/conta/eventos" className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/50 hover:text-coral transition-colors flex items-center gap-1">
+          <Link href="/eventos" className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/50 hover:text-coral transition-colors flex items-center gap-1">
             Ver todos <ArrowUpRight size={11} />
           </Link>
         </div>

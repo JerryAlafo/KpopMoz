@@ -455,7 +455,7 @@ export default function PesquisaPage() {
                 { label: "Talentos", href: "/talentos", bg: "linear-gradient(135deg, #3a5cff 0%, #7af0c8 100%)" },
                 { label: "Marketplace", href: "/marketplace", bg: "linear-gradient(135deg, #ffd23f 0%, #ff3d68 100%)" },
                 { label: "Aprender", href: "/aprender", bg: "linear-gradient(135deg, #0a0a0a 0%, #3a5cff 100%)" },
-                { label: "Comunidade", href: "/comunidade", bg: "linear-gradient(135deg, #7af0c8 0%, #ffd23f 100%)" },
+                { label: "Comunidade", href: "/", bg: "linear-gradient(135deg, #7af0c8 0%, #ffd23f 100%)" },
               ].map((item) => (
                 <Link
                   key={item.label}

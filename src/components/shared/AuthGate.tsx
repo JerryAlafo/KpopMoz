@@ -28,7 +28,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             Entrar na conta
           </Link>
           <Link
-            href="/comunidade"
+            href="/entrar"
             className="font-mono text-xs uppercase tracking-[0.15em] text-ink/50 hover:text-coral transition-colors"
           >
             Criar conta grátis →

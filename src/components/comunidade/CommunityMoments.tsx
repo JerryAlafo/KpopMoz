@@ -59,7 +59,7 @@ export function CommunityMoments() {
                 Ver eventos
               </Link>
               <Link
-                href="/conta/feed"
+                href="/feed"
                 className="inline-flex items-center justify-center border border-ink px-5 py-3 font-mono text-xs uppercase tracking-[0.2em] hover:bg-ink hover:text-bone transition-colors"
               >
                 Entrar no feed

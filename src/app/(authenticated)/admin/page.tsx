@@ -463,7 +463,7 @@ export default function AdminPage() {
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-ink/40">
             Acesso negado
           </p>
-          <Link href="/conta" className="btn-brutal">Voltar ao dashboard</Link>
+          <Link href="/dashboard" className="btn-brutal">Voltar ao dashboard</Link>
         </div>
       </div>
     );

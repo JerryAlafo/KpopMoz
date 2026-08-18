@@ -220,7 +220,7 @@ export default async function EventoPage({
                 />
 
                 <Link
-                  href="/comunidade"
+                  href="/eventos/inscricoes"
                   className="block border border-ink/15 p-5 hover:border-coral transition-colors group"
                 >
                   <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/50 mb-1.5">

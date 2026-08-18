@@ -6,7 +6,7 @@ import type { FeedPost } from "@/types";
 import {
   Heart, MessageCircle, Share2, Check, Newspaper, Calendar,
   Mic2, Trophy, ArrowUpRight, Send, Loader2, ChevronDown, Trash2,
-  Flag, UserPlus, UserCheck,
+  Flag, UserPlus, UserCheck, Repeat2,
 } from "lucide-react";
 import { useGuestMode } from "@/components/layout/GuestModeProvider";
 
@@ -82,6 +82,16 @@ export function PostCard({
   const [loadingComments, setLoadingComments] = useState(false);
   const [commentText,    setCommentText]    = useState("");
   const [postingComment, setPostingComment] = useState(false);
+
+  // Repost state
+  const [showRepostModal, setShowRepostModal] = useState(false);
+  const [repostText,      setRepostText]      = useState("");
+  const [reposting,       setReposting]       = useState(false);
+  const [reposted,        setReposted]        = useState(false);
+  const [shareCount,      setShareCount]      = useState(post.shares ?? 0);
+
+  const isRepost = !!post.repostOfId;
+  const repostTarget = post.repostOf ?? null;
 
   async function handleLike() {
     if (!requireLogin({
@@ -254,10 +264,44 @@ export function PostCard({
     }
   }
 
+  async function handleRepost() {
+    if (!requireLogin({
+      title: "Repost protegido",
+      message: "Entra na tua conta para repostar publicacoes.",
+    }) || reposting || reposted) return;
+
+    const targetPostId = repostTarget?.id ?? post.id;
+    setReposting(true);
+    try {
+      const res = await fetch(`/api/feed/${targetPostId}/repost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: repostText.trim() }),
+      });
+      if (res.ok) {
+        setReposted(true);
+        setShareCount((n) => n + 1);
+        setShowRepostModal(false);
+        setRepostText("");
+      }
+    } catch {} finally {
+      setReposting(false);
+    }
+  }
+
   const badge = TYPE_BADGE[post.type];
 
   return (
     <article id={post.id} className="border border-ink/10 hover:border-ink/20 transition-colors bg-bone">
+      {/* Label de repost */}
+      {isRepost && (
+        <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+          <Repeat2 size={12} className="text-ink/30" strokeWidth={2} />
+          <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-ink/40">
+            <span className="font-semibold text-ink/60">{post.author.name}</span> repostou
+          </span>
+        </div>
+      )}
       <div className="flex items-start justify-between gap-3 p-4 pb-3">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar: foto real ou iniciais */}
@@ -359,6 +403,57 @@ export function PostCard({
         </div>
       )}
 
+      {/* Preview do post original (quando é repost) */}
+      {repostTarget && (
+        <div className="mx-4 mb-3 border border-ink/10 bg-ink/[0.02] p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Link href={`/perfil/${repostTarget.author.username.replace("@", "")}`} className="shrink-0">
+              {repostTarget.author.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={repostTarget.author.avatarUrl}
+                  alt={repostTarget.author.name}
+                  className="w-6 h-6 object-cover border border-ink/10"
+                />
+              ) : (
+                <div
+                  className="w-6 h-6 grain flex items-center justify-center font-display font-black text-[8px] text-bone"
+                  style={{ background: repostTarget.author.avatarBg }}
+                >
+                  {repostTarget.author.initials}
+                </div>
+              )}
+            </Link>
+            <Link
+              href={`/perfil/${repostTarget.author.username.replace("@", "")}`}
+              className="font-display font-semibold text-xs hover:text-coral transition-colors truncate"
+            >
+              {repostTarget.author.name}
+            </Link>
+            <span className="font-mono text-[8px] text-ink/30">{timeAgo(repostTarget.publishedAt)}</span>
+          </div>
+          {repostTarget.content && (
+            <p className="font-mono text-xs text-ink/60 leading-relaxed whitespace-pre-wrap line-clamp-3">
+              {repostTarget.content}
+            </p>
+          )}
+          {repostTarget.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={repostTarget.imageUrl}
+              alt=""
+              className="mt-2 max-h-32 w-full object-cover border border-ink/5"
+            />
+          )}
+          <Link
+            href={`/post/${repostTarget.id}`}
+            className="inline-flex items-center gap-1 mt-2 font-mono text-[9px] uppercase tracking-[0.15em] text-coral hover:underline"
+          >
+            Ver publicação original <ArrowUpRight size={9} />
+          </Link>
+        </div>
+      )}
+
       {/* Barra de acções */}
       <div className="flex items-center justify-between px-3 py-2.5 border-t border-ink/[0.08]">
         {/* Esquerda: like + comentários */}
@@ -389,8 +484,30 @@ export function PostCard({
           </button>
         </div>
 
-        {/* Direita: partilhar + denunciar/apagar */}
+        {/* Direita: repost + partilhar + denunciar/apagar */}
         <div className="flex items-center gap-0.5">
+          {/* Repost — só para posts de outros utilizadores e que não são já um repost próprio */}
+          {userEmail && userEmail !== post.author.email && !reposted && (
+            <button
+              onClick={() => setShowRepostModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] border border-transparent text-ink/30 hover:text-emerald-600 hover:border-emerald-300/30 transition-colors"
+            >
+              <Repeat2 size={12} strokeWidth={2} />
+              <span className="hidden sm:inline">Repostar</span>
+            </button>
+          )}
+          {reposted && (
+            <span className="flex items-center gap-1.5 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] border border-emerald-400/40 text-emerald-700 bg-emerald-50">
+              <Check size={11} strokeWidth={2.5} />
+              <span className="hidden sm:inline">Repostado</span>
+            </span>
+          )}
+          {shareCount > 0 && (
+            <span className="flex items-center gap-1 px-1.5 py-1.5 font-mono text-[10px] text-ink/30">
+              <Repeat2 size={10} />
+              {fmt(shareCount)}
+            </span>
+          )}
           <button
             onClick={handleShare}
             title="Partilhar"
@@ -535,6 +652,71 @@ export function PostCard({
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={deleting}
+                className="flex-1 py-2.5 border border-ink/20 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60 hover:border-ink hover:text-ink transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de repost */}
+      {showRepostModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-ink/60 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowRepostModal(false); }}
+        >
+          <div className="w-full sm:max-w-md bg-bone border border-ink/15 shadow-xl mb-16 sm:mb-0">
+            <div className="px-6 py-5 border-b border-ink/10">
+              <div className="font-display font-bold text-lg mb-1">Repostar</div>
+              <p className="font-mono text-xs text-ink/50">
+                Partilha esta publicação com os teus seguidores.
+              </p>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <textarea
+                value={repostText}
+                onChange={(e) => setRepostText(e.target.value)}
+                maxLength={240}
+                rows={3}
+                placeholder="Adiciona um comentário (opcional)…"
+                className="w-full resize-none border border-ink/15 bg-transparent px-3 py-2 font-mono text-sm focus:outline-none focus:border-ink placeholder:text-ink/30"
+              />
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[9px] text-ink/30">
+                  {repostText.length}/240
+                </span>
+              </div>
+              {/* Preview do post a repostar */}
+              <div className="border border-ink/10 bg-ink/[0.02] p-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div
+                    className="w-5 h-5 grain flex items-center justify-center font-display font-black text-[7px] text-bone"
+                    style={{ background: post.author.avatarBg }}
+                  >
+                    {post.author.initials}
+                  </div>
+                  <span className="font-display font-semibold text-xs">{post.author.name}</span>
+                </div>
+                {post.content && (
+                  <p className="font-mono text-[11px] text-ink/50 line-clamp-2">{post.content}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-3 px-6 py-4 border-t border-ink/10">
+              <button
+                onClick={handleRepost}
+                disabled={reposting}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-bone border border-emerald-600 font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              >
+                {reposting
+                  ? <><Loader2 size={11} className="animate-spin" /> A repostar…</>
+                  : <><Repeat2 size={11} /> Repostar</>}
+              </button>
+              <button
+                onClick={() => setShowRepostModal(false)}
+                disabled={reposting}
                 className="flex-1 py-2.5 border border-ink/20 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/60 hover:border-ink hover:text-ink transition-colors disabled:opacity-50"
               >
                 Cancelar

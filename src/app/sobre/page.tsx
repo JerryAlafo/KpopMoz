@@ -347,7 +347,7 @@ export default async function SobrePage() {
               O K-POP em Moçambique somos todos nós.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/comunidade" className="btn-brutal">
+              <Link href="/entrar" className="btn-brutal">
                 Entrar na KM
                 <ArrowRight size={14} />
               </Link>

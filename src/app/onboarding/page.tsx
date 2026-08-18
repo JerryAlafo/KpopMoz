@@ -58,7 +58,7 @@ export default function OnboardingPage() {
       router.replace("/entrar");
     }
     if (status === "authenticated" && session?.user?.onboardingComplete === true) {
-      router.replace("/conta");
+      router.replace("/dashboard");
     }
   }, [status, session, router]);
 
@@ -89,7 +89,7 @@ export default function OnboardingPage() {
       }
       // Força refresh da session para actualizar onboardingComplete
       await update();
-      router.replace("/conta/feed");
+      router.replace("/feed");
     } catch {
       setError("Erro de ligação. Tenta novamente.");
     } finally {

@@ -219,7 +219,7 @@ export default async function LearnArticlePage({
               </div>
 
               <Link
-                href="/comunidade"
+                href="/"
                 className="block bg-coral text-ink p-6 group hover:bg-ink hover:text-bone transition-colors"
               >
                 <div className="font-mono text-[10px] tracking-[0.25em] uppercase mb-2 opacity-70">

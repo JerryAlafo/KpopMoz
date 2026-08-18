@@ -50,14 +50,14 @@ export default function PostPage() {
   }, []);
 
   const handleDeleted = useCallback(() => {
-    router.push("/conta/feed");
+    router.push("/feed");
   }, [router]);
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-12 pb-24 lg:pb-12 min-h-[60vh]">
       <div className="max-w-2xl mx-auto">
         <Link
-          href="/conta/feed"
+          href="/feed"
           className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/50 hover:text-coral transition-colors mb-6"
         >
           <ArrowLeft size={12} /> Voltar ao feed
@@ -71,7 +71,7 @@ export default function PostPage() {
           <div className="py-20 text-center">
             <div className="font-display font-bold text-2xl mb-2">Publicação não encontrada</div>
             <p className="font-mono text-xs text-ink/40 mb-6">Este post pode ter sido apagado ou o link está errado.</p>
-            <Link href="/conta/feed" className="btn-brutal text-sm">Ir para o feed</Link>
+            <Link href="/feed" className="btn-brutal text-sm">Ir para o feed</Link>
           </div>
         ) : (
           <PostCard
