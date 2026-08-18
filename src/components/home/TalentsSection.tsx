@@ -28,7 +28,7 @@ export async function TalentsSection() {
           eyebrow="Spotlight"
           title="Talentos moçambicanos a brilhar"
           description="Bailarinos, cantores, produtores e criadores que fazem o K-POP crescer em Moçambique."
-          link={{ href: "/talentos", label: "Ver todos os talentos" }}
+          link={{ href: "/entrar", label: "Ver todos os talentos" }}
         />
 
         {talents.length === 0 ? (
@@ -40,7 +40,7 @@ export async function TalentsSection() {
               Abre a página de talentos para pesquisar novamente.
             </p>
             <Link
-              href="/talentos"
+              href="/entrar"
               className="mt-5 inline-flex items-center gap-2 border border-ink px-5 py-3 font-mono text-xs uppercase tracking-[0.2em] hover:bg-ink hover:text-bone transition-colors"
             >
               Abrir talentos

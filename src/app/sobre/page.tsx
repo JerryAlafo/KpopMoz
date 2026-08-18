@@ -352,7 +352,7 @@ export default async function SobrePage() {
                 <ArrowRight size={14} />
               </Link>
               <Link
-                href="/eventos"
+                href="/entrar"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-ink font-mono text-xs uppercase tracking-[0.15em] font-semibold hover:bg-ink hover:text-bone transition-colors"
               >
                 Ver próximos eventos

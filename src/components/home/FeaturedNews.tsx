@@ -20,7 +20,7 @@ export async function FeaturedNews() {
           eyebrow="Notícias"
           title="O que mexe no K-POP esta semana"
           description="Curado pela equipa KM para a comunidade moçambicana - sem ruído, sem rumores soltos."
-          link={{ href: "/noticias", label: "Todas as notícias" }}
+          link={{ href: "/entrar", label: "Todas as notícias" }}
         />
 
         <div className="mt-10 lg:mt-16 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">

@@ -82,7 +82,7 @@ export async function Hero() {
                 Entrar na KM
                 <ArrowRight size={14} />
               </Link>
-              <Link href="/eventos" className="btn-brutal btn-brutal--invert">
+              <Link href="/entrar" className="btn-brutal btn-brutal--invert">
                 Próximos eventos
               </Link>
             </div>

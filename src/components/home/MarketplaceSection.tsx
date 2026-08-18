@@ -31,14 +31,14 @@ export async function MarketplaceSection() {
           eyebrow="Marketplace"
           title="Trocas, vendas e merch"
           description="Photocards, lightsticks, álbuns, posters, roupa e acessórios - de vendedores moçambicanos para fãs moçambicanos."
-          link={{ href: "/marketplace", label: "Abrir marketplace" }}
+          link={{ href: "/entrar", label: "Abrir marketplace" }}
         />
 
         <div className="mt-10 lg:mt-16 grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {items.map((item, i) => (
             <Link
               key={item.id}
-              href="/marketplace"
+              href="/entrar"
               className="group flex flex-col card-tilt"
             >
               <div

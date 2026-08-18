@@ -48,7 +48,7 @@ export async function EventsSection() {
           eyebrow="Calendário"
           title="Próximos eventos"
           description="Random dance, cover dance, encontros e festivais. Junta-te. As inscrições fecham quando enchemos a sala."
-          link={{ href: "/eventos", label: "Calendário completo" }}
+          link={{ href: "/entrar", label: "Calendário completo" }}
           invert
         />
 

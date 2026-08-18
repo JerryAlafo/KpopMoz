@@ -24,7 +24,7 @@ export async function ArtistsSection() {
           eyebrow="Discografias"
           title="Grupos & artistas em rotação"
           description="Artistas e faixas carregados em tempo real a partir de fontes públicas de música."
-          link={{ href: "/artistas", label: "Ver toda a discografia" }}
+          link={{ href: "/entrar", label: "Ver toda a discografia" }}
         />
 
         {featured.length === 0 ? (

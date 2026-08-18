@@ -4,14 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Search, LogOut, User, Rss, LayoutDashboard } from "lucide-react";
+import { Menu, X, Search, LogOut, User, Grid3X3, Newspaper, Calendar, Mic2, Music, ShoppingBag, BookOpen, Rss, LayoutDashboard, Heart, HeartHandshake, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth";
 
 const publicNavItems = [
   { label: "Notícias",    href: "/noticias",    k: "01" },
   { label: "Eventos",     href: "/eventos",     k: "02" },
-  { label: "Comunidade",  href: "/",                  k: "03" },
+  { label: "Comunidade",  href: "/",            k: "03" },
   { label: "Talentos",    href: "/talentos",    k: "04" },
   { label: "Artistas",    href: "/artistas",    k: "05" },
   { label: "Marketplace", href: "/marketplace", k: "06" },
@@ -27,16 +27,30 @@ const privateNavItems = [
   { label: "Aprender",    href: "/aprender",    k: "06" },
 ];
 
+const allPrivateLinks = [
+  { label: "Feed",        href: "/feed",        icon: Rss },
+  { label: "Notícias",    href: "/noticias",    icon: Newspaper },
+  { label: "Eventos",     href: "/eventos",     icon: Calendar },
+  { label: "Artistas",    href: "/artistas",    icon: Mic2 },
+  { label: "Talentos",    href: "/talentos",    icon: Music },
+  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { label: "Aprender",    href: "/aprender",    icon: BookOpen },
+  { label: "Dashboard",   href: "/dashboard",   icon: LayoutDashboard },
+  { label: "Favoritos",   href: "/favoritos",   icon: Heart },
+  { label: "Pesquisa",    href: "/pesquisa",    icon: Search },
+  { label: "Suporte",     href: "/suporte",     icon: HeartHandshake },
+];
+
 const DARK_HERO_ROUTES = [
   "/sobre", "/imprensa", "/trabalha-connosco",
   "/termos", "/privacidade", "/cookies",
-  "/eventos", "/aprender",
 ];
 
 export function Header() {
   const [open, setOpen]               = useState(false);
   const [scrolled, setScrolled]       = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [moreOpen, setMoreOpen]       = useState(false);
   const pathname  = usePathname();
   const router    = useRouter();
   const { user, logout } = useAuth();
@@ -55,8 +69,8 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-  }, [open]);
+    document.body.style.overflow = open || moreOpen ? "hidden" : "";
+  }, [open, moreOpen]);
 
   useEffect(() => { setAccountOpen(false); }, [pathname]);
 
@@ -64,6 +78,7 @@ export function Header() {
     logout();
     setAccountOpen(false);
     setOpen(false);
+    setMoreOpen(false);
     router.push("/");
   }
 
@@ -75,7 +90,7 @@ export function Header() {
   if (pathname === "/entrar" || pathname === "/onboarding") return null;
 
   // Esconde header nas páginas protegidas (têm sidebar própria)
-  const PROTECTED_PREFIXES = ["/feed", "/dashboard", "/eventos", "/noticias", "/artistas", "/aprender", "/marketplace", "/musicas", "/talentos", "/pesquisa", "/post", "/perfil", "/favoritos", "/admin"];
+  const PROTECTED_PREFIXES = ["/feed", "/dashboard", "/eventos", "/noticias", "/artistas", "/aprender", "/marketplace", "/musicas", "/talentos", "/pesquisa", "/post", "/perfil", "/favoritos", "/admin", "/suporte"];
   if (PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
 
   return (
@@ -86,40 +101,6 @@ export function Header() {
           scrolled ? "bg-bone/90 backdrop-blur-md border-b border-ink/10" : "bg-transparent"
         )}
       >
-        {/* Barra de contexto para utilizadores autenticados (só em páginas públicas, exceto landing) */}
-        {user && pathname !== "/" && (
-          <div className="bg-ink text-bone border-b border-bone/10">
-            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between h-8">
-              <div className="flex items-center gap-4">
-                <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-bone/40">
-                  Plataforma
-                </span>
-                <Link
-                  href="/feed"
-                  className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.15em] uppercase text-bone/70 hover:text-coral transition-colors"
-                >
-                  <Rss size={9} strokeWidth={2} /> Feed
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.15em] uppercase text-bone/70 hover:text-coral transition-colors"
-                >
-                  <LayoutDashboard size={9} strokeWidth={2} /> Dashboard
-                </Link>
-                <Link
-                  href="/eventos"
-                  className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.15em] uppercase text-bone/70 hover:text-coral transition-colors"
-                >
-                  Os meus eventos
-                </Link>
-              </div>
-              <div className="font-mono text-[9px] tracking-[0.15em] uppercase text-bone/40">
-                Olá, {user.name.split(" ")[0]}
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className={cn(
             "flex items-center justify-between h-16 lg:h-20 transition-colors duration-300",
@@ -148,23 +129,21 @@ export function Header() {
               </div>
             </Link>
 
-            {/* Desktop nav — oculto na landing page */}
-            {pathname !== "/" && (
-              <nav className="hidden lg:flex items-center gap-8">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "link-underline font-mono text-xs uppercase tracking-widest hover:text-coral transition-colors",
-                      item.href === "/feed" && "text-coral font-semibold"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-            )}
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "link-underline font-mono text-xs uppercase tracking-widest hover:text-coral transition-colors",
+                    item.href === "/feed" && user && "text-coral font-semibold"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
 
             {/* Actions */}
             <div className="flex items-center gap-3">
@@ -205,17 +184,19 @@ export function Header() {
                         <Rss size={13} /> Feed
                       </Link>
                       <Link
-                        href="/dashboard"
-                        className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10"
-                      >
-                        <LayoutDashboard size={13} /> Dashboard
-                      </Link>
-                      <Link
                         href="/perfil"
                         className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10"
                       >
                         <User size={13} /> Perfil
                       </Link>
+                      {user.isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-ink hover:text-bone transition-colors border-b border-ink/10 text-coral"
+                        >
+                          <Shield size={13} /> Admin
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] hover:bg-coral hover:text-bone transition-colors text-left"
@@ -254,7 +235,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile menu */}
+      {/* Mobile slide-out menu */}
       <div className={cn("fixed inset-0 z-50 lg:hidden transition-all duration-500", open ? "visible" : "invisible")}>
         <div
           onClick={() => setOpen(false)}
@@ -287,45 +268,22 @@ export function Header() {
             </button>
           </div>
 
-          {/* Atalhos privados no topo do menu mobile quando autenticado */}
-          {user && (
-            <div className="px-5 py-4 border-b border-ink/10 bg-ink/5 flex gap-3">
+          <nav className="px-5 py-6">
+            {publicNavItems.map((item, i) => (
               <Link
-                href="/feed"
+                key={item.href}
+                href={item.href}
                 onClick={() => setOpen(false)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-coral text-bone font-mono text-[10px] uppercase tracking-[0.15em]"
+                className="group flex items-baseline gap-4 py-4 border-b border-ink/10 hover:pl-2 transition-all"
+                style={{ animationDelay: `${i * 60}ms` }}
               >
-                <Rss size={12} /> Feed
+                <span className="font-mono text-[10px] tracking-[0.25em] text-ink/40 w-8">{item.k}</span>
+                <span className="font-display text-3xl sm:text-4xl font-semibold tracking-tight group-hover:text-coral transition-colors">
+                  {item.label}
+                </span>
               </Link>
-              <Link
-                href="/dashboard"
-                onClick={() => setOpen(false)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-ink font-mono text-[10px] uppercase tracking-[0.15em]"
-              >
-                <LayoutDashboard size={12} /> Dashboard
-              </Link>
-            </div>
-          )}
-
-          {/* Nav no mobile — oculto na landing page */}
-          {pathname !== "/" && (
-            <nav className="px-5 py-6">
-              {publicNavItems.map((item, i) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="group flex items-baseline gap-4 py-4 border-b border-ink/10 hover:pl-2 transition-all"
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
-                  <span className="font-mono text-[10px] tracking-[0.25em] text-ink/40 w-8">{item.k}</span>
-                  <span className="font-display text-3xl sm:text-4xl font-semibold tracking-tight group-hover:text-coral transition-colors">
-                    {item.label}
-                  </span>
-                </Link>
-              ))}
-            </nav>
-          )}
+            ))}
+          </nav>
 
           <div className="px-5 pb-8 mt-4 space-y-3">
             {user ? (
@@ -361,6 +319,47 @@ export function Header() {
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/50 mt-4">
               Comunidade desde 2020<br />Maputo · Beira · Online
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile "Mais" full-screen drawer */}
+      <div className={cn("fixed inset-0 z-50 lg:hidden transition-all duration-300", moreOpen ? "visible" : "invisible")}>
+        <div
+          onClick={() => setMoreOpen(false)}
+          className={cn("absolute inset-0 bg-ink/80 backdrop-blur-sm transition-opacity duration-300", moreOpen ? "opacity-100" : "opacity-0")}
+        />
+        <div className={cn(
+          "absolute inset-0 bg-bone overflow-y-auto transition-transform duration-300 ease-out",
+          moreOpen ? "translate-y-0" : "translate-y-full"
+        )}>
+          <div className="flex items-center justify-between px-5 h-16 border-b border-ink/10 sticky top-0 bg-bone z-10">
+            <span className="font-display font-bold text-lg">
+              Navegar<span className="text-coral">.</span>
+            </span>
+            <button
+              onClick={() => setMoreOpen(false)}
+              aria-label="Fechar"
+              className="w-10 h-10 border border-ink flex items-center justify-center"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="p-5 grid grid-cols-2 gap-3">
+            {allPrivateLinks.map(({ label, href, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMoreOpen(false)}
+                className={cn(
+                  "flex flex-col items-center gap-3 p-5 border border-ink/15 hover:border-ink hover:bg-ink hover:text-bone transition-all",
+                  pathname === href && "bg-ink text-bone border-ink"
+                )}
+              >
+                <Icon size={22} strokeWidth={1.75} />
+                <span className="font-mono text-[10px] uppercase tracking-[0.15em]">{label}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </div>

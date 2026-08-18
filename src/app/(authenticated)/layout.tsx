@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, User, Calendar, Heart, Rss, ShieldCheck, LogOut, ChevronRight, Shield } from "lucide-react";
+import { LayoutDashboard, User, Calendar, Heart, Rss, ShieldCheck, LogOut, ChevronRight, Shield, HeartHandshake, Grid3X3, Newspaper, Mic2, Music, ShoppingBag, BookOpen, Search, X } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useGuestMode } from "@/components/layout/GuestModeProvider";
 import { cn } from "@/lib/utils";
@@ -16,11 +16,26 @@ const navLinks = [
   { label: "Perfil",     href: "/perfil",    icon: User },
 ];
 
+const allPrivateLinks = [
+  { label: "Feed",        href: "/feed",        icon: Rss },
+  { label: "Notícias",    href: "/noticias",    icon: Newspaper },
+  { label: "Eventos",     href: "/eventos",     icon: Calendar },
+  { label: "Artistas",    href: "/artistas",    icon: Mic2 },
+  { label: "Talentos",    href: "/talentos",    icon: Music },
+  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { label: "Aprender",    href: "/aprender",    icon: BookOpen },
+  { label: "Dashboard",   href: "/dashboard",   icon: LayoutDashboard },
+  { label: "Favoritos",   href: "/favoritos",   icon: Heart },
+  { label: "Pesquisa",    href: "/pesquisa",    icon: Search },
+  { label: "Suporte",     href: "/suporte",     icon: HeartHandshake },
+];
+
 export default function ContaLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, authenticated, logout } = useAuth();
   const { isGuest } = useGuestMode();
   const router = useRouter();
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -142,6 +157,23 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
               </Link>
             )}
 
+            <Link
+              href="/suporte"
+              className={cn(
+                "flex items-center justify-between px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] transition-colors group",
+                pathname === "/suporte" ? "bg-ink text-bone" : "text-ink/50 hover:text-ink hover:bg-ink/5"
+              )}
+            >
+              <span className="flex items-center gap-3">
+                <HeartHandshake size={14} strokeWidth={1.75} />
+                Suporte
+              </span>
+              <ChevronRight size={12} className={cn(
+                "transition-opacity",
+                pathname === "/suporte" ? "opacity-100" : "opacity-0 group-hover:opacity-40"
+              )} />
+            </Link>
+
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 font-mono text-xs uppercase tracking-[0.15em] text-ink/50 hover:text-coral hover:bg-coral/5 transition-colors"
@@ -158,7 +190,10 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
 
       {/* ── Mobile bottom nav ────────────────────────────── */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-bone border-t border-ink/10 flex">
-        {navLinks.map(({ label, href, icon: Icon }) => {
+        {[
+          { label: "Feed", href: "/feed", icon: Rss },
+          { label: "Eventos", href: "/eventos", icon: Calendar },
+        ].map(({ label, href, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
@@ -174,7 +209,7 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
             </Link>
           );
         })}
-        {user.isAdmin && (
+        {user.isAdmin ? (
           <Link
             href="/admin"
             className={cn(
@@ -185,8 +220,25 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
             <Shield size={20} strokeWidth={pathname === "/admin" ? 2.25 : 1.75} className={pathname === "/admin" ? "text-coral" : ""} />
             <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Admin</span>
           </Link>
+        ) : (
+          <Link
+            href="/perfil"
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-colors",
+              pathname === "/perfil" ? "text-coral" : "text-ink/40 hover:text-ink"
+            )}
+          >
+            <User size={20} strokeWidth={pathname === "/perfil" ? 2.25 : 1.75} className={pathname === "/perfil" ? "text-coral" : ""} />
+            <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Perfil</span>
+          </Link>
         )}
-        {/* Logout no mobile */}
+        <button
+          onClick={() => setMoreOpen(true)}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-ink/40 hover:text-ink transition-colors"
+        >
+          <Grid3X3 size={20} strokeWidth={1.75} />
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Mais</span>
+        </button>
         <button
           onClick={handleLogout}
           className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-ink/40 hover:text-coral transition-colors"
@@ -195,6 +247,47 @@ export default function ContaLayout({ children }: { children: React.ReactNode })
           <span className="font-mono text-[8px] uppercase tracking-[0.1em]">Sair</span>
         </button>
       </nav>
+
+      {/* ── Mobile "Mais" full-screen drawer ────────────── */}
+      <div className={cn("fixed inset-0 z-50 lg:hidden transition-all duration-300", moreOpen ? "visible" : "invisible")}>
+        <div
+          onClick={() => setMoreOpen(false)}
+          className={cn("absolute inset-0 bg-ink/80 backdrop-blur-sm transition-opacity duration-300", moreOpen ? "opacity-100" : "opacity-0")}
+        />
+        <div className={cn(
+          "absolute inset-0 bg-bone overflow-y-auto transition-transform duration-300 ease-out",
+          moreOpen ? "translate-y-0" : "translate-y-full"
+        )}>
+          <div className="flex items-center justify-between px-5 h-16 border-b border-ink/10 sticky top-0 bg-bone z-10">
+            <span className="font-display font-bold text-lg">
+              Navegar<span className="text-coral">.</span>
+            </span>
+            <button
+              onClick={() => setMoreOpen(false)}
+              aria-label="Fechar"
+              className="w-10 h-10 border border-ink flex items-center justify-center"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="p-5 grid grid-cols-2 gap-3">
+            {allPrivateLinks.map(({ label, href, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMoreOpen(false)}
+                className={cn(
+                  "flex flex-col items-center gap-3 p-5 border border-ink/15 hover:border-ink hover:bg-ink hover:text-bone transition-all",
+                  pathname === href && "bg-ink text-bone border-ink"
+                )}
+              >
+                <Icon size={22} strokeWidth={1.75} />
+                <span className="font-mono text-[10px] uppercase tracking-[0.15em]">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
 
     </div>
   );

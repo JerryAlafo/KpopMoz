@@ -28,7 +28,7 @@ export async function LearnSection() {
           eyebrow="Cultura"
           title="Aprende com a comunidade"
           description="Glossário, alfabeto Hangul, história do K-POP e cultura coreana - tudo em português, sem complicar."
-          link={{ href: "/aprender", label: "Centro de aprendizagem" }}
+          link={{ href: "/entrar", label: "Centro de aprendizagem" }}
           invert
         />
 

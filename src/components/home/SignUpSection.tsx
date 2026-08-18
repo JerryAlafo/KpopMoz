@@ -104,7 +104,7 @@ export function SignUpSection() {
             {fandoms.map((f, i) => (
               <Link
                 key={f.name}
-                href={`/pesquisa?q=${encodeURIComponent(f.name)}`}
+                href="/entrar"
                 className="group relative aspect-square p-4 lg:p-5 flex flex-col justify-between text-left transition-transform hover:-translate-y-1 grain"
                 style={{ backgroundColor: f.color }}
               >

@@ -55,7 +55,7 @@ export function CommunityMoments() {
               </p>
             </div>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link href="/eventos" className="btn-brutal">
+              <Link href="/entrar" className="btn-brutal">
                 Ver eventos
               </Link>
               <Link
