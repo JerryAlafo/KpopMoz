@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Music, Users } from "lucide-react";
+import { ArrowUpRight, Music, Users } from "lucide-react";
 import { getArtistBySlug, getDynamicArtists } from "@/lib/music-feed";
 import { Marquee } from "@/components/shared/Marquee";
 import type { Artist } from "@/types";
@@ -50,7 +50,7 @@ export default async function ArtistPage({
   return (
     <>
       <section
-        className="relative pt-28 lg:pt-36 pb-0 overflow-hidden grain bg-ink"
+        className="relative pb-0 overflow-hidden grain bg-ink"
         style={artistVisualStyle(artist)}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-ink/20 to-bone" />
@@ -62,13 +62,7 @@ export default async function ArtistPage({
           KPOP
         </div>
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 relative">
-          <Link
-            href="/artistas"
-            className="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase text-bone/70 hover:text-bone transition-colors mb-8"
-          >
-            <ArrowLeft size={13} strokeWidth={2} />
-            Todos os artistas
-          </Link>
+
 
           <div className="pb-20 lg:pb-28">
             <div className="flex flex-wrap gap-2 mb-5">

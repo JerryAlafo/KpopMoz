@@ -52,7 +52,7 @@ export function ArtistasClient({ initialArtists }: ArtistasClientProps) {
 
   return (
     <>
-      <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 bg-coral text-ink grain relative overflow-hidden">
+      <section className="pb-12 lg:pb-16 bg-coral text-ink grain relative overflow-hidden">
         <div
           aria-hidden
           className="absolute right-[-2rem] -top-12 hangul-deco font-black text-ink/[0.06] select-none pointer-events-none leading-none"

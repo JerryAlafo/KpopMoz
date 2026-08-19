@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { MapPin, Clock, ArrowLeft, ArrowUpRight, Calendar, CheckCircle } from "lucide-react";
+import { MapPin, Clock, ArrowUpRight, Calendar, CheckCircle } from "lucide-react";
 import { Marquee } from "@/components/shared/Marquee";
 import { EventRegistrationCard } from "@/components/eventos/EventRegistrationCard";
 
@@ -102,19 +102,11 @@ export default async function EventoPage({
     <>
       {/* Hero */}
       <section
-        className="relative pt-28 lg:pt-36 pb-0 overflow-hidden grain"
+        className="relative pb-0 overflow-hidden grain"
         style={{ background: event.coverBg }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-transparent to-bone" />
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 relative">
-          <Link
-            href="/eventos"
-            className="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase text-bone/80 hover:text-bone transition-colors mb-8"
-          >
-            <ArrowLeft size={13} strokeWidth={2} />
-            Calendário
-          </Link>
-
           <div className="pb-20 lg:pb-28">
             <div className="flex flex-wrap gap-2 mb-5">
               <span className="bg-bone text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5">

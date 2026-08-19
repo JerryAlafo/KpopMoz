@@ -9,11 +9,16 @@ import { useGuestMode } from "@/components/layout/GuestModeProvider";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Feed",       href: "/feed",      icon: Rss },
-  { label: "Eventos",    href: "/eventos",   icon: Calendar },
-  { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
-  { label: "Favoritos",  href: "/favoritos", icon: Heart },
-  { label: "Perfil",     href: "/perfil",    icon: User },
+  { label: "Feed",        href: "/feed",        icon: Rss },
+  { label: "Notícias",    href: "/noticias",    icon: Newspaper },
+  { label: "Eventos",     href: "/eventos",     icon: Calendar },
+  { label: "Artistas",    href: "/artistas",    icon: Mic2 },
+  { label: "Talentos",    href: "/talentos",    icon: Music },
+  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { label: "Aprender",    href: "/aprender",    icon: BookOpen },
+  { label: "Dashboard",   href: "/dashboard",   icon: LayoutDashboard },
+  { label: "Favoritos",   href: "/favoritos",   icon: Heart },
+  { label: "Perfil",      href: "/perfil",      icon: User },
 ];
 
 const allPrivateLinks = [

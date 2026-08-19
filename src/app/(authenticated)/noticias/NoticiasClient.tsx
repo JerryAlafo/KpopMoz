@@ -56,7 +56,7 @@ export function NoticiasClient({ initialNews }: NoticiasClientProps) {
 
   return (
     <>
-      <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 border-b border-ink/15">
+      <section className="pb-12 lg:pb-16 border-b border-ink/15">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex flex-col gap-4">
             <div className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-coral flex items-center gap-3">

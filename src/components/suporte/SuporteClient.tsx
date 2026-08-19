@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowUpRight, Heart, MessageCircle } from "lucide-react";
 
 const SOCIALS = [
@@ -58,15 +57,9 @@ const SOCIALS = [
 export default function SuporteClient() {
   return (
     <div className="min-h-screen bg-bone">
-      <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-12 lg:py-20">
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="mb-12">
-          <Link
-            href="/"
-            className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink/40 hover:text-coral transition-colors mb-6 inline-block"
-          >
-            ← Voltar
-          </Link>
           <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none">
             Suporte / Criador
           </h1>

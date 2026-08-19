@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   MapPin, Calendar, Users, Rss, UserPlus, UserCheck,
-  Loader2, ArrowLeft, Heart, MessageCircle, Settings, X,
+  Loader2, Heart, MessageCircle, Settings, X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 
@@ -196,9 +196,6 @@ export default function PublicProfilePage() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
         <div className="font-display font-black text-6xl text-ink/10">404</div>
         <p className="font-mono text-sm text-ink/40">Perfil não encontrado.</p>
-        <button onClick={() => router.back()} className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-coral hover:underline">
-          <ArrowLeft size={12} /> Voltar
-        </button>
       </div>
     );
   }
@@ -208,16 +205,8 @@ export default function PublicProfilePage() {
   const joinYear  = profile.joinedAt ? new Date(profile.joinedAt).getFullYear() : null;
 
   return (
-    <div className="min-h-screen bg-bone pt-16 lg:pt-20">
+    <div className="bg-bone">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 lg:py-14">
-
-        {/* Voltar */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors mb-8"
-        >
-          <ArrowLeft size={12} strokeWidth={2} /> Voltar
-        </button>
 
         {/* Cabeçalho do perfil */}
         <div className="border border-ink/10 p-6 sm:p-8 bg-bone mb-6">

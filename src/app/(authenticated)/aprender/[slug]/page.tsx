@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Clock, ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
+import { Clock, ArrowUpRight, BookOpen } from "lucide-react";
 import { Marquee } from "@/components/shared/Marquee";
 
 export async function generateStaticParams() {
@@ -83,7 +83,7 @@ export default async function LearnArticlePage({
   return (
     <>
       {/* Header */}
-      <section className="pt-28 lg:pt-36 pb-8 bg-ink text-bone relative overflow-hidden grain">
+      <section className="pb-8 bg-ink text-bone relative overflow-hidden grain">
         <div
           aria-hidden
           className="absolute right-[-2rem] top-1/2 -translate-y-1/2 hangul-deco font-black text-bone/[0.04] select-none pointer-events-none leading-none"
@@ -92,14 +92,6 @@ export default async function LearnArticlePage({
           공부
         </div>
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 relative">
-          <Link
-            href="/aprender"
-            className="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase text-bone/60 hover:text-coral transition-colors mb-8"
-          >
-            <ArrowLeft size={13} strokeWidth={2} />
-            Centro de aprendizagem
-          </Link>
-
           <div className="flex flex-wrap gap-2 mb-5">
             <span className="bg-coral text-ink font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-1.5">
               {topic.category}

@@ -1,7 +1,7 @@
 export default function ArtistasLoading() {
   return (
     <>
-      <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 bg-coral">
+      <section className="pb-12 lg:pb-16 bg-coral">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="h-3 w-44 bg-ink/10 animate-pulse" />
           <div className="mt-6 h-16 sm:h-24 max-w-4xl bg-ink/10 animate-pulse" />

@@ -19,7 +19,7 @@ export default async function AprenderPage() {
 
   return (
     <>
-      <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 bg-ink text-bone relative overflow-hidden grain">
+      <section className="pb-12 lg:pb-16 bg-ink text-bone relative overflow-hidden grain">
         <div
           aria-hidden
           className="absolute left-[-3rem] top-1/2 -translate-y-1/2 hangul-deco font-black text-bone/[0.04] select-none pointer-events-none leading-none"

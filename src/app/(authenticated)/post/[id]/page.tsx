@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { PostCard } from "@/components/feed/PostCard";
 import { useAuth } from "@/contexts/auth";
 import type { FeedPost } from "@/types";
@@ -56,12 +56,7 @@ export default function PostPage() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-12 pb-24 lg:pb-12 min-h-[60vh]">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/feed"
-          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/50 hover:text-coral transition-colors mb-6"
-        >
-          <ArrowLeft size={12} /> Voltar ao feed
-        </Link>
+
 
         {loading ? (
           <div className="flex items-center justify-center py-20 gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-ink/30">

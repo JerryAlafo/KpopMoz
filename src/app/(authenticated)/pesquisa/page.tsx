@@ -285,7 +285,7 @@ export default function PesquisaPage() {
 
   return (
     <>
-      <section className="pt-28 lg:pt-36 pb-0 relative overflow-hidden bg-bone">
+      <section className="pb-0 relative overflow-hidden bg-bone">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-coral flex items-center gap-3 mb-6">
             <span className="inline-block w-6 h-px bg-coral" />
