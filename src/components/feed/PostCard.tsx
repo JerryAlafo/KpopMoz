@@ -363,7 +363,7 @@ export function PostCard({
               {badge.icon}{badge.label}
             </span>
           )}
-          <span className="font-mono text-[10px] text-ink/30">{timeAgo(post.publishedAt)}</span>
+          <Link href={`/post/${post.id}`} className="font-mono text-[10px] text-ink/30 hover:text-coral transition-colors">{timeAgo(post.publishedAt)}</Link>
         </div>
       </div>
 
