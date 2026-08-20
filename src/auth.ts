@@ -4,15 +4,63 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { getActiveBanForProfile } from "@/lib/bans";
 import { createAdminClient, supabase } from "@/lib/supabase";
+import { verifyGoogleIdToken } from "@/lib/verify-google-id-token";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
+  trustHost: true,
   session: { strategy: "jwt" },
 
   providers: [
     Google({
       clientId:     process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    }),
+    Credentials({
+      id: "google-mobile",
+      name: "Google (Mobile)",
+      credentials: {
+        id_token: { label: "Google ID Token", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials || typeof credentials.id_token !== "string" || !credentials.id_token) {
+          return null;
+        }
+
+        const payload = await verifyGoogleIdToken(credentials.id_token);
+        if (!payload?.email) return null;
+
+        const displayName = payload.name || payload.email.split("@")[0] || "";
+        const db = createAdminClient();
+
+        const { data: existingUsers } = await db.auth.admin.listUsers();
+        const existingUser = existingUsers.users.find((u) => u.email === payload.email);
+
+        let userId: string;
+        if (existingUser) {
+          userId = existingUser.id;
+        } else {
+          const { data: newUser, error } = await db.auth.admin.createUser({
+            email: payload.email,
+            email_confirm: true,
+            user_metadata: { display_name: displayName, provider: "google-mobile" },
+            app_metadata: { provider: "google-mobile" },
+          });
+          if (error || !newUser?.user) return null;
+          userId = newUser.user.id;
+
+          const base = payload.email.split("@")[0].replace(/[^a-z0-9]/gi, "").toLowerCase();
+          await db.from("profiles").insert({
+            email: payload.email,
+            name: displayName,
+            username: `@${base}`,
+            avatar_url: null,
+            onboarding_complete: false,
+          });
+        }
+
+        return { id: userId, email: payload.email, name: displayName };
+      },
     }),
     Credentials({
       credentials: {
@@ -84,7 +132,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 
       // Google: criar perfil se não existir
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "google-mobile") {
         try {
           const db = createAdminClient();
           const { data } = await db
