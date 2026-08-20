@@ -35,6 +35,8 @@ const TYPE_BADGE: Record<string, { label: string; cls: string; icon?: React.Reac
 interface Comment {
   id: string;
   content: string;
+  replyTo: string | null;
+  replyToAuthor: string | null;
   createdAt: string;
   author: { name: string; username: string; initials: string; avatarBg: string };
 }
@@ -82,6 +84,8 @@ export function PostCard({
   const [loadingComments, setLoadingComments] = useState(false);
   const [commentText,    setCommentText]    = useState("");
   const [postingComment, setPostingComment] = useState(false);
+  const [replyToId,      setReplyToId]      = useState<string | null>(null);
+  const [replyToAuthor,  setReplyToAuthor]  = useState<string | null>(null);
 
   // Repost state
   const [showRepostModal, setShowRepostModal] = useState(false);
@@ -248,20 +252,35 @@ export function PostCard({
     }) || !commentText.trim() || postingComment) return;
     setPostingComment(true);
     try {
+      const body: Record<string, string> = { content: commentText.trim() };
+      if (replyToId) body.replyTo = replyToId;
       const res = await fetch(`/api/feed/${post.id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: commentText.trim() }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         const newComment = await res.json();
         setComments((prev) => [...prev, newComment]);
         setCommentCount((n) => n + 1);
         setCommentText("");
+        setReplyToId(null);
+        setReplyToAuthor(null);
       }
     } catch {} finally {
       setPostingComment(false);
     }
+  }
+
+  function handleSetReply(commentId: string, authorName: string) {
+    setReplyToId(commentId);
+    setReplyToAuthor(authorName);
+  }
+
+  function handleCancelReply() {
+    setReplyToId(null);
+    setReplyToAuthor(null);
+    setCommentText("");
   }
 
   async function handleRepost() {
@@ -740,23 +759,79 @@ export function PostCard({
             </div>
           ) : (
             <div className="divide-y divide-ink/[0.06]">
-              {comments.map((c) => (
-                <div key={c.id} className="flex gap-3 px-4 py-3">
-                  <div
-                    className="w-7 h-7 shrink-0 grain flex items-center justify-center font-display font-black text-[10px] text-bone"
-                    style={{ background: c.author.avatarBg }}
-                  >
-                    {c.author.initials}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="font-display font-semibold text-xs">{c.author.name}</span>
-                      <span className="font-mono text-[9px] text-ink/30">{timeAgo(c.createdAt)}</span>
+              {comments.filter((c) => !c.replyTo).map((c) => (
+                <div key={c.id}>
+                  <div className="flex gap-3 px-4 py-3">
+                    <div
+                      className="w-7 h-7 shrink-0 grain flex items-center justify-center font-display font-black text-[10px] text-bone"
+                      style={{ background: c.author.avatarBg }}
+                    >
+                      {c.author.initials}
                     </div>
-                    <p className="font-mono text-xs text-ink/70 leading-relaxed whitespace-pre-wrap">{c.content}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="font-display font-semibold text-xs">{c.author.name}</span>
+                        <span className="font-mono text-[9px] text-ink/30">{timeAgo(c.createdAt)}</span>
+                      </div>
+                      {c.replyToAuthor && (
+                        <span className="font-mono text-[9px] text-coral/60 block mb-0.5">
+                          respondendo a @{c.replyToAuthor}
+                        </span>
+                      )}
+                      <p className="font-mono text-xs text-ink/70 leading-relaxed whitespace-pre-wrap">{c.content}</p>
+                      <button
+                        onClick={() => handleSetReply(c.id, c.author.name)}
+                        className="font-mono text-[9px] text-ink/30 hover:text-ink/60 mt-1 tracking-wide uppercase transition-colors"
+                      >
+                        Responder
+                      </button>
+                    </div>
                   </div>
+                  {comments.filter((r) => r.replyTo === c.id).map((r) => (
+                    <div key={r.id} className="flex gap-3 pl-11 pr-4 py-2 border-l-2 border-ink/[0.06]">
+                      <div
+                        className="w-5 h-5 shrink-0 grain flex items-center justify-center font-display font-black text-[8px] text-bone"
+                        style={{ background: r.author.avatarBg }}
+                      >
+                        {r.author.initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="font-display font-semibold text-[11px]">{r.author.name}</span>
+                          <span className="font-mono text-[9px] text-ink/30">{timeAgo(r.createdAt)}</span>
+                        </div>
+                        {r.replyToAuthor && (
+                          <span className="font-mono text-[9px] text-coral/60 block mb-0.5">
+                            respondendo a @{r.replyToAuthor}
+                          </span>
+                        )}
+                        <p className="font-mono text-[11px] text-ink/70 leading-relaxed whitespace-pre-wrap">{r.content}</p>
+                        <button
+                          onClick={() => handleSetReply(c.id, c.author.name)}
+                          className="font-mono text-[9px] text-ink/30 hover:text-ink/60 mt-1 tracking-wide uppercase transition-colors"
+                        >
+                          Responder
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Reply context bar */}
+          {replyToAuthor && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-coral/[0.06] border-t border-coral/20">
+              <span className="font-mono text-[10px] text-coral font-semibold tracking-wide">
+                Respondendo a @{replyToAuthor}
+              </span>
+              <button
+                onClick={handleCancelReply}
+                className="ml-auto font-mono text-[10px] text-coral/60 hover:text-coral transition-colors"
+              >
+                ✕
+              </button>
             </div>
           )}
 
@@ -774,7 +849,7 @@ export function PostCard({
                   })
                 }
               }}
-              placeholder={isGuest ? "Entra para comentar…" : "Escreve um comentário…"}
+              placeholder={isGuest ? "Entra para comentar…" : replyToAuthor ? `Responder a @${replyToAuthor}…` : "Escreve um comentário…"}
               maxLength={500}
               className="flex-1 min-w-0 bg-transparent border border-ink/15 focus:border-ink px-3 py-2 font-mono text-xs placeholder:text-ink/25 focus:outline-none transition-colors"
             />

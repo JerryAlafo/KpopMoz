@@ -148,6 +148,7 @@ CREATE TABLE IF NOT EXISTS feed_posts (
 -- CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments(post_id);
 -- CREATE INDEX IF NOT EXISTS idx_post_comments_user ON post_comments(user_email);
 -- ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE post_comments ADD COLUMN IF NOT EXISTS reply_to UUID REFERENCES post_comments(id) ON DELETE SET NULL;
 
 -- Comentários em posts do feed
 CREATE TABLE IF NOT EXISTS post_comments (
@@ -155,6 +156,7 @@ CREATE TABLE IF NOT EXISTS post_comments (
   post_id      UUID        NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
   user_email   TEXT        NOT NULL,
   content      TEXT        NOT NULL,
+  reply_to     UUID        REFERENCES post_comments(id) ON DELETE SET NULL,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

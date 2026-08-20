@@ -26,13 +26,12 @@ export async function GET(
 
   const { data: comments, error } = await db
     .from("post_comments")
-    .select("id, user_email, content, created_at")
+    .select("id, user_email, content, reply_to, created_at")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
   if (error) return NextResponse.json([], { status: 200 });
 
-  // Batch-load profiles
   const emails = [...new Set((comments ?? []).map((c) => c.user_email))];
   const profileMap: Record<string, { name: string; username: string; fandoms: string[] }> = {};
   if (emails.length > 0) {
@@ -45,13 +44,30 @@ export async function GET(
     }
   }
 
+  const replyToIds = [...new Set(
+    (comments ?? []).map((c) => c.reply_to).filter(Boolean)
+  )] as string[];
+  const replyToAuthorMap: Record<string, string> = {};
+  if (replyToIds.length > 0) {
+    const { data: parentComments } = await db
+      .from("post_comments")
+      .select("id, user_email")
+      .in("id", replyToIds);
+    for (const pc of parentComments ?? []) {
+      const p = profileMap[pc.user_email];
+      replyToAuthorMap[pc.id] = p?.username ?? "utilizador";
+    }
+  }
+
   const result = (comments ?? []).map((c) => {
     const p = profileMap[c.user_email];
     const fandom = p?.fandoms?.[0] ?? "";
     return {
-      id:         c.id,
-      content:    c.content,
-      createdAt:  c.created_at,
+      id:            c.id,
+      content:       c.content,
+      replyTo:       c.reply_to ?? null,
+      replyToAuthor: c.reply_to ? (replyToAuthorMap[c.reply_to] ?? null) : null,
+      createdAt:     c.created_at,
       author: {
         name:     p?.name     ?? "Utilizador",
         username: p?.username ?? "@utilizador",
@@ -74,14 +90,13 @@ export async function POST(
   }
 
   const { id: postId } = await params;
-  const { content } = await req.json();
+  const { content, replyTo } = await req.json();
   if (!content?.trim()) {
     return NextResponse.json({ error: "Comentário vazio" }, { status: 400 });
   }
 
   const db = createAdminClient();
 
-  // Verifica que o post existe
   const { data: post } = await db
     .from("feed_posts")
     .select("id, comments, author_email")
@@ -90,23 +105,50 @@ export async function POST(
 
   if (!post) return NextResponse.json({ error: "Post não encontrado" }, { status: 404 });
 
-  // Insere o comentário
+  let replyToId: string | null = null;
+  if (replyTo) {
+    const { data: parentComment } = await db
+      .from("post_comments")
+      .select("id, user_email")
+      .eq("id", replyTo)
+      .eq("post_id", postId)
+      .maybeSingle();
+    if (parentComment) {
+      replyToId = parentComment.id;
+      if (parentComment.user_email !== session.user.email) {
+        await db.from("notifications").insert({
+          user_email: parentComment.user_email,
+          type:       "reply",
+          from_email: session.user.email,
+          post_id:    postId,
+        });
+      }
+    }
+  }
+
+  const insertData: Record<string, unknown> = {
+    post_id: postId,
+    user_email: session.user.email,
+    content: content.trim(),
+  };
+  if (replyToId) {
+    insertData.reply_to = replyToId;
+  }
+
   const { data: comment, error } = await db
     .from("post_comments")
-    .insert({ post_id: postId, user_email: session.user.email, content: content.trim() })
+    .insert(insertData)
     .select("id, created_at")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Incrementa o contador de comentários
   await db
     .from("feed_posts")
     .update({ comments: post.comments + 1 })
     .eq("id", postId);
 
-  // Notifica o autor (se não for o próprio)
-  if (post.author_email !== session.user.email) {
+  if (!replyToId && post.author_email !== session.user.email) {
     await db.from("notifications").insert({
       user_email: post.author_email,
       type:       "comment",
@@ -115,7 +157,6 @@ export async function POST(
     });
   }
 
-  // Devolve o comentário enriquecido
   const { data: profile } = await db
     .from("profiles")
     .select("name, username, fandoms")
@@ -124,10 +165,29 @@ export async function POST(
 
   const fandom = profile?.fandoms?.[0] ?? "";
 
+  let replyToAuthorName: string | null = null;
+  if (replyToId) {
+    const { data: parentComment } = await db
+      .from("post_comments")
+      .select("user_email")
+      .eq("id", replyToId)
+      .maybeSingle();
+    if (parentComment) {
+      const { data: parentProfile } = await db
+        .from("profiles")
+        .select("username")
+        .eq("email", parentComment.user_email)
+        .maybeSingle();
+      replyToAuthorName = parentProfile?.username ?? null;
+    }
+  }
+
   return NextResponse.json({
-    id:        comment.id,
-    content:   content.trim(),
-    createdAt: comment.created_at,
+    id:            comment.id,
+    content:       content.trim(),
+    replyTo:       replyToId,
+    replyToAuthor: replyToAuthorName,
+    createdAt:     comment.created_at,
     author: {
       name:     profile?.name     ?? "Utilizador",
       username: profile?.username ?? "@utilizador",
